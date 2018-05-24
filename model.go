@@ -31,9 +31,12 @@ func getUsers(db *sql.DB) ([]User, error) {
 }
 
 func (u *User) createUser(db *sql.DB) error {
-  statement := fmt.Sprintf("INSERT INTO users(email, password) VALUES('%s', '%s')", u.Email, u.Password)
-  _, err := db.Exec(statement)
-
+  query := `
+    INSERT INTO users (email, password)
+    VALUES (?, ?)
+  `
+  var err error
+  _, err = db.Exec(query, u.Email, u.Password)
   if err != nil {
     return err
   }
