@@ -23,6 +23,12 @@ func (a *App) createUser(w http.ResponseWriter, r *http.Request) {
   }
   defer r.Body.Close()
 
+  // 1. add validation
+  //   - email should be valid
+  //   - password minimum of 8 characters
+
+  // 2. check if email is already registered.
+
   if err := u.createUser(a.DB); err != nil {
     responseJsonErr(w, http.StatusInternalServerError, err.Error())
     return

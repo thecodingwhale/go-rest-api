@@ -24,12 +24,6 @@ func (app *App) database(driver, user, password, name string) {
   }
 }
 
-func (app *App) routes() {
-  app.Router = mux.NewRouter()
-  app.Router.HandleFunc("/users/all", app.getUsers).Methods("GET")
-  app.Router.HandleFunc("/users", app.createUser).Methods("POST")
-}
-
 func (app *App) run(port string) {
   log.Fatal(http.ListenAndServe(port, app.Router))
 }

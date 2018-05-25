@@ -7,7 +7,7 @@ import (
 )
 
 type User struct {
-  ID        int       `json:"id"`
+  Id        int       `json:"id"`
   Email     string    `json:"email"`
   Password  string    `json:"password"`
 }
@@ -22,7 +22,7 @@ func getUsers(db *sql.DB) ([]User, error) {
   users := []User{}
   for rows.Next() {
     var u User
-    if err := rows.Scan(&u.ID, &u.Email, &u.Password); err != nil {
+    if err := rows.Scan(&u.Id, &u.Email, &u.Password); err != nil {
       return nil, err
     }
     users = append(users, u)
@@ -41,7 +41,7 @@ func (u *User) createUser(db *sql.DB) error {
     return err
   }
 
-  err = db.QueryRow("SELECT LAST_INSERT_ID()").Scan(&u.ID)
+  err = db.QueryRow("SELECT LAST_INSERT_ID()").Scan(&u.Id)
 
   if err != nil {
     return err
