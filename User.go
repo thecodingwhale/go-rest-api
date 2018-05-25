@@ -4,12 +4,22 @@ import (
   "fmt"
   "database/sql"
   _ "github.com/go-sql-driver/mysql"
+
+  "github.com/go-ozzo/ozzo-validation"
+  "github.com/go-ozzo/ozzo-validation/is"
 )
 
 type User struct {
   Id        int       `json:"id"`
   Email     string    `json:"email"`
   Password  string    `json:"password"`
+}
+
+func (u User) Validate() error {
+  return validation.ValidateStruct(&u,
+    validation.Field(&u.Email, validation.Required, is.Email),
+    validation.Field(&u.Password, validation.Required, validation.Length(8, 50)),
+  )
 }
 
 func getUsers(db *sql.DB) ([]User, error) {

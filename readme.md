@@ -30,3 +30,6 @@ type Job struct {
   https://www.golang-book.com/books/intro
 
 go build && ./go-rest-api
+
+for form validation
+https://github.com/go-ozzo/ozzo-validation

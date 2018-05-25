@@ -21,18 +21,33 @@ func (a *App) createUser(w http.ResponseWriter, r *http.Request) {
     responseJsonErr(w, http.StatusBadRequest, "Invalid request payload")
     return
   }
-  defer r.Body.Close()
 
   // 1. add validation
   //   - email should be valid
   //   - password minimum of 8 characters
-
-  // 2. check if email is already registered.
-
-  if err := u.createUser(a.DB); err != nil {
-    responseJsonErr(w, http.StatusInternalServerError, err.Error())
+/*
+  {
+    error: {
+      email: "error email message",
+      password: "error password message",
+    }
+  }
+*/
+  if err := u.Validate(); err != nil {
+    response, _ := json.Marshal(err)
+    w.Header().Set("Content-Type", "application/json")
+    w.WriteHeader(http.StatusBadRequest)
+    w.Write(response)
     return
   }
+
+  defer r.Body.Close()
+
+  // 2. check if email is already registered.
+  // if err := u.createUser(a.DB); err != nil {
+  //   responseJsonErr(w, http.StatusInternalServerError, err.Error())
+  //   return
+  // }
 
   responseJson(w, http.StatusCreated, u)
 }
