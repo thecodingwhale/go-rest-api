@@ -3,8 +3,11 @@ package main
 import (
   "fmt"
   "database/sql"
-  _ "github.com/go-sql-driver/mysql"
+  "log"
+  "errors"
+  // "reflect"
 
+  _ "github.com/go-sql-driver/mysql"
   "github.com/go-ozzo/ozzo-validation"
   "github.com/go-ozzo/ozzo-validation/is"
 )
@@ -15,11 +18,34 @@ type User struct {
   Password  string    `json:"password"`
 }
 
-func (u User) Validate() error {
+func (u User) validate() error {
   return validation.ValidateStruct(&u,
     validation.Field(&u.Email, validation.Required, is.Email),
     validation.Field(&u.Password, validation.Required, validation.Length(8, 50)),
   )
+}
+
+func (u User) isEmailExists(db *sql.DB) error {
+  rows, err := db.Query("SELECT email FROM users WHERE email = ?", u.Email)
+  if err != nil {
+    log.Fatal(err)
+    return err
+  }
+  defer rows.Close()
+  for rows.Next() {
+    err := rows.Scan(&u.Email)
+    if err != nil {
+      log.Fatal(err)
+      return err
+    }
+    return errors.New("email already exists")
+  }
+  err = rows.Err()
+  if err != nil {
+    log.Fatal(err)
+    return err;
+  }
+  return nil
 }
 
 func getUsers(db *sql.DB) ([]User, error) {
@@ -59,3 +85,10 @@ func (u *User) createUser(db *sql.DB) error {
 
   return nil
 }
+
+func checkErr(err error) {
+  if err != nil {
+    panic(err)
+  }
+}
+

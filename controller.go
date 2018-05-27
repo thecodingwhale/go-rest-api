@@ -1,8 +1,10 @@
 package main
 
 import (
+  // "fmt"
   "net/http"
   "encoding/json"
+  // "strings"
 )
 
 func (app *App) getUsers(w http.ResponseWriter, r *http.Request) {
@@ -25,7 +27,7 @@ func (a *App) createUser(w http.ResponseWriter, r *http.Request) {
   // 1. add validation
   //   - email should be valid
   //   - password minimum of 8 characters
-  if err := u.Validate(); err != nil {
+  if err := u.validate(); err != nil {
     response, _ := json.Marshal(map[string]error{"error": err})
     w.Header().Set("Content-Type", "application/json")
     w.WriteHeader(http.StatusBadRequest)
@@ -33,11 +35,21 @@ func (a *App) createUser(w http.ResponseWriter, r *http.Request) {
     return
   }
 
-  defer r.Body.Close()
   // 2. check if email is already registered.
-  // if err := u.createUser(a.DB); err != nil {
-  //   responseJsonErr(w, http.StatusInternalServerError, err.Error())
-  //   return
-  // }
+  if err := u.isEmailExists(a.DB); err != nil {
+    response, _ := json.Marshal(map[string]map[string]string{"error": { "email": err.Error() }})
+    w.Header().Set("Content-Type", "application/json")
+    w.WriteHeader(http.StatusBadRequest)
+    w.Write(response)
+    return
+  }
+
+  defer r.Body.Close()
+
+  if err := u.createUser(a.DB); err != nil {
+    responseJsonErr(w, http.StatusInternalServerError, err.Error())
+    return
+  }
+
   responseJson(w, http.StatusCreated, u)
 }
