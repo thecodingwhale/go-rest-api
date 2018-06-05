@@ -64,7 +64,8 @@ func (a *App) createTokenEndpoint(w http.ResponseWriter, r *http.Request) {
   }
 
   // 1. check if the user exists
-  if err := u.isUserExists(a.DB); err != nil {
+  token, err := u.isUserExists(a.DB)
+  if err != nil {
     response, _ := json.Marshal(map[string]map[string]string{"error": { "email": err.Error() }})
     w.Header().Set("Content-Type", "application/json")
     w.WriteHeader(http.StatusBadRequest)
@@ -75,5 +76,5 @@ func (a *App) createTokenEndpoint(w http.ResponseWriter, r *http.Request) {
   defer r.Body.Close()
 
   // 2. return token
-  responseJson(w, http.StatusCreated, map[string]string{"token": u.getToken(a.DB)})
+  responseJson(w, http.StatusCreated, map[string]string{"token": token})
 }

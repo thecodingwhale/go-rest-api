@@ -58,7 +58,6 @@ func (u User) getToken(db *sql.DB) string {
   if err != nil {
     log.Fatal("Error loading .env file")
   }
-
   token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
     "id": u.Id,
     "email": u.Email,
@@ -70,30 +69,31 @@ func (u User) getToken(db *sql.DB) string {
   return tokenString
 }
 
-func (u User) isUserExists(db *sql.DB) error {
+func (u User) isUserExists(db *sql.DB) (tokenString string, err error) {
   requestPassword := u.Password
-  rows, err := db.Query("SELECT email, password FROM users WHERE email=?", u.Email)
+  rows, err := db.Query("SELECT id, email, password FROM users WHERE email=?", u.Email)
   if err != nil {
     log.Fatal(err)
-    return err
+    return "", err
   }
   defer rows.Close()
 
   for rows.Next() {
-    rows.Scan(&u.Email, &u.Password);
+    rows.Scan(&u.Id, &u.Email, &u.Password);
     if (CheckPasswordHash(requestPassword, u.Password)) {
-      return nil
+      tokenString := u.getToken(db)
+      return tokenString, nil
     }
-    return errors.New("invalid password")
+    return "", errors.New("invalid password")
   }
-  return errors.New("credentials not found")
+  return "", errors.New("credentials not found")
 
   err = rows.Err()
   if err != nil {
     log.Fatal(err)
-    return err;
+    return "", err;
   }
-  return nil
+  return "", nil
 }
 
 func getUsers(db *sql.DB) ([]User, error) {
