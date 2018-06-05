@@ -1,6 +1,7 @@
 package main
 
 import (
+  "os"
   "fmt"
   "database/sql"
   "log"
@@ -10,6 +11,8 @@ import (
   _ "github.com/go-sql-driver/mysql"
   "github.com/go-ozzo/ozzo-validation"
   "github.com/go-ozzo/ozzo-validation/is"
+  "github.com/joho/godotenv"
+  "github.com/dgrijalva/jwt-go"
 )
 
 type User struct {
@@ -48,6 +51,23 @@ func (u User) isEmailExists(db *sql.DB) error {
     return err;
   }
   return nil
+}
+
+func (u User) getToken(db *sql.DB) string {
+  err := godotenv.Load()
+  if err != nil {
+    log.Fatal("Error loading .env file")
+  }
+
+  token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+    "id": u.Id,
+    "email": u.Email,
+  })
+  tokenString, err := token.SignedString([]byte(os.Getenv("APP_SECRET")))
+  if err != nil {
+    errors.New("token error")
+  }
+  return tokenString
 }
 
 func (u User) isUserExists(db *sql.DB) error {

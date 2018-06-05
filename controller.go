@@ -44,13 +44,36 @@ func (a *App) createUser(w http.ResponseWriter, r *http.Request) {
     return
   }
 
-  defer r.Body.Close()
-
   if err := u.createUser(a.DB); err != nil {
     responseJsonErr(w, http.StatusInternalServerError, err.Error())
     return
   }
 
+  defer r.Body.Close()
+
   // 3. throw empty string json object.
   responseJson(w, http.StatusCreated, map[string]string{})
+}
+
+func (a *App) createTokenEndpoint(w http.ResponseWriter, r *http.Request) {
+  var u User
+  decoder := json.NewDecoder(r.Body)
+  if err := decoder.Decode(&u); err != nil {
+    responseJsonErr(w, http.StatusBadRequest, "Invalid request payload")
+    return
+  }
+
+  // 1. check if the user exists
+  if err := u.isUserExists(a.DB); err != nil {
+    response, _ := json.Marshal(map[string]map[string]string{"error": { "email": err.Error() }})
+    w.Header().Set("Content-Type", "application/json")
+    w.WriteHeader(http.StatusBadRequest)
+    w.Write(response)
+    return
+  }
+
+  defer r.Body.Close()
+
+  // 2. return token
+  responseJson(w, http.StatusCreated, map[string]string{"token": u.getToken(a.DB)})
 }

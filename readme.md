@@ -1,5 +1,5 @@
 ## App
-  - create a simple api for a job posting website.
+  - create a simple api for a job posting with jwt authentication
 
 ### Run
 ```
