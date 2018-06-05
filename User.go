@@ -72,7 +72,8 @@ func (u *User) createUser(db *sql.DB) error {
     VALUES (?, ?)
   `
   var err error
-  _, err = db.Exec(query, u.Email, u.Password)
+  hashPassword, _ := HashPassword(u.Password)
+  _, err = db.Exec(query, u.Email, hashPassword)
   if err != nil {
     return err
   }

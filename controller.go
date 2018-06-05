@@ -51,5 +51,6 @@ func (a *App) createUser(w http.ResponseWriter, r *http.Request) {
     return
   }
 
-  responseJson(w, http.StatusCreated, u)
+  // 3. throw empty string json object.
+  responseJson(w, http.StatusCreated, map[string]string{})
 }

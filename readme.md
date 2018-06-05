@@ -1,8 +1,12 @@
 ## App
   - create a simple api for a job posting website.
 
-### API
+### Run
+```
+go build && ./go-rest-api
+```
 
+### API
 ```
 type User struct {
   Id
@@ -37,8 +41,6 @@ type Job struct {
   https://blog.questionable.services/article/http-handler-error-handling-revisited/
   https://stackoverflow.com/questions/6012692/os-error-string-value-golang
   https://medium.com/@sebdah/go-best-practices-error-handling-2d15e1f0c5ee
+  https://gowebexamples.com/password-hashing/
+  https://github.com/go-ozzo/ozzo-validation
 
-go build && ./go-rest-api
-
-for form validation
-https://github.com/go-ozzo/ozzo-validation
