@@ -18,12 +18,14 @@ import (
 type User struct {
   Id        int       `json:"id"`
   Email     string    `json:"email"`
+  Name      string    `json:"name"`
   Password  string    `json:"password"`
 }
 
 func (u User) validate() error {
   return validation.ValidateStruct(&u,
     validation.Field(&u.Email, validation.Required, is.Email),
+    validation.Field(&u.Name, validation.Required, validation.Length(8, 50)),
     validation.Field(&u.Password, validation.Required, validation.Length(8, 50)),
   )
 }
@@ -60,6 +62,7 @@ func (u User) getToken(db *sql.DB) string {
   }
   token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
     "id": u.Id,
+    "name": u.Name,
     "email": u.Email,
   })
   tokenString, err := token.SignedString([]byte(os.Getenv("APP_SECRET")))
@@ -71,7 +74,7 @@ func (u User) getToken(db *sql.DB) string {
 
 func (u User) isUserExists(db *sql.DB) (tokenString string, err error) {
   requestPassword := u.Password
-  rows, err := db.Query("SELECT id, email, password FROM users WHERE email=?", u.Email)
+  rows, err := db.Query("SELECT id, email, name, password FROM users WHERE email=?", u.Email)
   if err != nil {
     log.Fatal(err)
     return "", err
@@ -79,7 +82,7 @@ func (u User) isUserExists(db *sql.DB) (tokenString string, err error) {
   defer rows.Close()
 
   for rows.Next() {
-    rows.Scan(&u.Id, &u.Email, &u.Password);
+    rows.Scan(&u.Id, &u.Name, &u.Email, &u.Password)
     if (CheckPasswordHash(requestPassword, u.Password)) {
       tokenString := u.getToken(db)
       return tokenString, nil
@@ -97,7 +100,7 @@ func (u User) isUserExists(db *sql.DB) (tokenString string, err error) {
 }
 
 func getUsers(db *sql.DB) ([]User, error) {
-  statement := fmt.Sprintf("SELECT id, email, password FROM users")
+  statement := fmt.Sprintf("SELECT id, email, name, password FROM users")
   rows, err := db.Query(statement)
   if err != nil {
     return nil, err
@@ -106,7 +109,7 @@ func getUsers(db *sql.DB) ([]User, error) {
   users := []User{}
   for rows.Next() {
     var u User
-    if err := rows.Scan(&u.Id, &u.Email, &u.Password); err != nil {
+    if err := rows.Scan(&u.Id, &u.Name, &u.Email, &u.Password); err != nil {
       return nil, err
     }
     users = append(users, u)
@@ -116,12 +119,12 @@ func getUsers(db *sql.DB) ([]User, error) {
 
 func (u *User) createUser(db *sql.DB) error {
   query := `
-    INSERT INTO users (email, password)
-    VALUES (?, ?)
+    INSERT INTO users (email, name, password)
+    VALUES (?, ?, ?)
   `
   var err error
   hashPassword, _ := HashPassword(u.Password)
-  _, err = db.Exec(query, u.Email, hashPassword)
+  _, err = db.Exec(query, u.Email, u.Name, hashPassword)
   if err != nil {
     return err
   }

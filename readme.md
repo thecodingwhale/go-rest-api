@@ -6,29 +6,50 @@
 go build && ./go-rest-api
 ```
 
-### API
-```
 type User struct {
   Id
   Email
+  Name
   Password
 }
-```
-- [POST] | /users -> creating an account
-  body -> {
-    "email": "foo@email.com",
-    "password": "password",
-  }
-```
-type Job struct {
-  Id
-  UserId
-  Name
-  Description
+
+### API
+endpoint: POST - /users
+body
+{
+  "email": "john.doe@email.com",
+  "name": "John Doe",
+  "password": "12345678"
 }
-```
-* /jobs/${id} | protected
-  * [GET] -
+payload
+{}
+
+endpoint: POST - /authenticate
+body
+{
+  "email": "john.doe@email.com",
+  "password": "12345678"
+}
+payload
+{
+  "token": "token"
+}
+
+endpoint: GET - /test
+headers:
+  Key: Authorization
+  Value: Bearer token
+body
+{
+  "email": "john.doe@email.com",
+  "password": "12345678"
+}
+payload
+{
+  "id": 1,
+  "name": "John Doe",
+  "email": "john.doe@email.com"
+}
 
 ### Helpful Links
   https://www.golang-book.com/books/intro
