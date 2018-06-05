@@ -26,20 +26,48 @@ func (u User) validate() error {
 }
 
 func (u User) isEmailExists(db *sql.DB) error {
+  // tuple - return multiple values
   rows, err := db.Query("SELECT email FROM users WHERE email = ?", u.Email)
   if err != nil {
     log.Fatal(err)
     return err
   }
   defer rows.Close()
+
   for rows.Next() {
-    err := rows.Scan(&u.Email)
-    if err != nil {
+    // err := rows.Scan(&u.Email)
+    if err := rows.Scan(&u.Email); err != nil {
       log.Fatal(err)
       return err
     }
     return errors.New("email already exists")
   }
+  err = rows.Err()
+  if err != nil {
+    log.Fatal(err)
+    return err;
+  }
+  return nil
+}
+
+func (u User) isUserExists(db *sql.DB) error {
+  requestPassword := u.Password
+  rows, err := db.Query("SELECT email, password FROM users WHERE email=?", u.Email)
+  if err != nil {
+    log.Fatal(err)
+    return err
+  }
+  defer rows.Close()
+
+  for rows.Next() {
+    rows.Scan(&u.Email, &u.Password);
+    if (CheckPasswordHash(requestPassword, u.Password)) {
+      return nil
+    }
+    return errors.New("invalid password")
+  }
+  return errors.New("credentials not found")
+
   err = rows.Err()
   if err != nil {
     log.Fatal(err)
