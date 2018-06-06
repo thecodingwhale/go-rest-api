@@ -14,28 +14,48 @@ type User struct {
 }
 
 ### API
-endpoint: POST - /users
+#### POST - /users
+```
 body
 {
   "email": "john.doe@email.com",
   "name": "John Doe",
   "password": "12345678"
 }
-payload
+response
 {}
+```
 
-endpoint: POST - /authenticate
+#### POST - /authenticate
+```
 body
 {
   "email": "john.doe@email.com",
   "password": "12345678"
 }
-payload
+response
 {
   "token": "token"
 }
+```
 
-endpoint: GET - /test
+#### POST - /jobs
+```
+headers:
+  Key: Authorization
+  Value: Bearer token
+body
+{
+  "post": "Senior Software Engineer",
+  "company": "A New World",
+  "location": "Remote"
+}
+response
+{}
+```
+
+#### GET - /test
+```
 headers:
   Key: Authorization
   Value: Bearer token
@@ -44,12 +64,13 @@ body
   "email": "john.doe@email.com",
   "password": "12345678"
 }
-payload
+response
 {
   "id": 1,
   "name": "John Doe",
   "email": "john.doe@email.com"
 }
+```
 
 ### Helpful Links
   https://www.golang-book.com/books/intro

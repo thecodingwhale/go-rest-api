@@ -12,6 +12,7 @@ import (
   "github.com/gorilla/mux"
   "github.com/gorilla/context"
   "github.com/dgrijalva/jwt-go"
+  "github.com/mitchellh/mapstructure"
 )
 
 type Exception struct {
@@ -54,7 +55,9 @@ func ValidateMiddleware(next http.HandlerFunc) http.HandlerFunc {
 
 func TestEndpoint(w http.ResponseWriter, req *http.Request) {
   decoded := context.Get(req, "decoded")
-  json.NewEncoder(w).Encode(decoded)
+  var user User
+  mapstructure.Decode(decoded.(jwt.MapClaims), &user)
+  json.NewEncoder(w).Encode(user)
 }
 
 func (app *App) routes() {
@@ -65,4 +68,5 @@ func (app *App) routes() {
   app.Router.HandleFunc("/authenticate", app.createTokenEndpoint).Methods("POST")
 
   app.Router.HandleFunc("/test", ValidateMiddleware(TestEndpoint)).Methods("GET")
+  app.Router.HandleFunc("/jobs", ValidateMiddleware(app.createJob)).Methods("POST")
 }

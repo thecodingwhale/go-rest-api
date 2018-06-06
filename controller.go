@@ -1,10 +1,14 @@
 package main
 
 import (
-  // "fmt"
+  "fmt"
+  // "reflect"
   "net/http"
   "encoding/json"
-  // "strings"
+
+  "github.com/gorilla/context"
+  "github.com/dgrijalva/jwt-go"
+  "github.com/mitchellh/mapstructure"
 )
 
 func (app *App) getUsers(w http.ResponseWriter, r *http.Request) {
@@ -77,4 +81,38 @@ func (a *App) createTokenEndpoint(w http.ResponseWriter, r *http.Request) {
 
   // 2. return token
   responseJson(w, http.StatusCreated, map[string]string{"token": token})
+}
+
+func (a *App) createJob(w http.ResponseWriter, r *http.Request) {
+  var j Job
+  decoder := json.NewDecoder(r.Body)
+  if err := decoder.Decode(&j); err != nil {
+    responseJsonErr(w, http.StatusBadRequest, "Invalid request payload")
+    return
+  }
+
+  // add validation
+  if err := j.validate(); err != nil {
+    response, _ := json.Marshal(map[string]error{"error": err})
+    w.Header().Set("Content-Type", "application/json")
+    w.WriteHeader(http.StatusBadRequest)
+    w.Write(response)
+    return
+  }
+
+  // decode token from headers
+  var u User
+  decoded := context.Get(r, "decoded")
+  mapstructure.Decode(decoded.(jwt.MapClaims), &u)
+
+  // create new job post
+  if err := j.createJob(a.DB, u.Id); err != nil {
+    responseJsonErr(w, http.StatusInternalServerError, err.Error())
+    return
+  }
+
+  defer r.Body.Close()
+
+  // 2. throw empty string json object.
+  responseJson(w, http.StatusCreated, map[string]string{})
 }
