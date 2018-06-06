@@ -2,7 +2,9 @@ package main
 
 import (
   "fmt"
+  "log"
   "database/sql"
+  "errors"
 
   _ "github.com/go-sql-driver/mysql"
   "github.com/go-ozzo/ozzo-validation"
@@ -25,6 +27,47 @@ func (j Job) validate() error {
   )
 }
 
+func (j *Job) getJob(db *sql.DB) (map[string]interface{}, error) {
+  rows, err := db.Query(`
+    SELECT
+      jobs.id,
+      jobs.post,
+      jobs.location,
+      jobs.company,
+      users.name
+    FROM
+      jobs
+    JOIN
+      users
+      ON jobs.user_id = users.id
+    WHERE
+      jobs.id = ?
+  `, j.Id)
+  if err != nil {
+    log.Fatal(err)
+    return nil, err
+  }
+  defer rows.Close()
+  var u User
+  for rows.Next() {
+    rows.Scan(&j.Id, &j.Post, &j.Location, &j.Company, &u.Name)
+    return map[string]interface{}{
+      "id" : j.Id,
+      "post": j.Post,
+      "location": j.Location,
+      "company": j.Company,
+      "name": u.Name,
+    }, nil
+  }
+  return nil, errors.New("No job post found.")
+
+  err = rows.Err()
+  if err != nil {
+    log.Fatal(err)
+    return map[string]interface{}{}, err;
+  }
+  return map[string]interface{}{}, nil
+}
 
 func (j *Job) createJob(db *sql.DB, userId int) error {
   fmt.Println(userId)

@@ -1,12 +1,12 @@
 package main
 
 import (
-  "fmt"
-  // "reflect"
+  "strconv"
   "net/http"
   "encoding/json"
 
   "github.com/gorilla/context"
+  "github.com/gorilla/mux"
   "github.com/dgrijalva/jwt-go"
   "github.com/mitchellh/mapstructure"
 )
@@ -116,3 +116,24 @@ func (a *App) createJob(w http.ResponseWriter, r *http.Request) {
   // 2. throw empty string json object.
   responseJson(w, http.StatusCreated, map[string]string{})
 }
+
+func (a *App) getJob(w http.ResponseWriter, r *http.Request) {
+  vars := mux.Vars(r)
+  id, err := strconv.Atoi(vars["id"])
+  if err != nil {
+    responseJsonErr(w, http.StatusBadRequest, "Invalid user ID")
+    return
+  }
+
+  j := Job{
+    Id: id,
+  }
+
+  job, err := j.getJob(a.DB)
+  if err != nil {
+    responseJsonErr(w, http.StatusInternalServerError, err.Error())
+    return
+  }
+  responseJson(w, http.StatusOK, job)
+}
+

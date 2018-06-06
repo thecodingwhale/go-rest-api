@@ -14,6 +14,7 @@ type User struct {
 }
 
 ### API
+
 #### POST - /users
 ```
 body
@@ -36,6 +37,17 @@ body
 response
 {
   "token": "token"
+}
+```
+
+#### GET - /jobs/{id:[0-9]+}
+```
+response
+{
+  "id": 2,
+  "post": "Senior Software Engineer (Python / Node.js)",
+  "location": "Makati City",
+  "company": "Lenddo"
 }
 ```
 
@@ -85,4 +97,9 @@ response
   https://medium.com/@sebdah/go-best-practices-error-handling-2d15e1f0c5ee
   https://gowebexamples.com/password-hashing/
   https://github.com/go-ozzo/ozzo-validation
+  https://golangbot.com/learn-golang-series/
+  https://snippets.aktagon.com/snippets/757-how-to-join-two-tables-with-jmoiron-sqlx
+  http://www.golangprograms.com/go-language/golang-maps.html
+  https://stackoverflow.com/questions/40509575/how-can-i-merge-two-structs-in-golang
+  https://medium.com/code-zen/dynamically-creating-instances-from-key-value-pair-map-and-json-in-go-feef83ab9db2
 

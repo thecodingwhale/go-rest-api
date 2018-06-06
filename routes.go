@@ -68,5 +68,7 @@ func (app *App) routes() {
   app.Router.HandleFunc("/authenticate", app.createTokenEndpoint).Methods("POST")
 
   app.Router.HandleFunc("/test", ValidateMiddleware(TestEndpoint)).Methods("GET")
+
+  app.Router.HandleFunc("/jobs/{id:[0-9]+}", app.getJob).Methods("GET")
   app.Router.HandleFunc("/jobs", ValidateMiddleware(app.createJob)).Methods("POST")
 }
