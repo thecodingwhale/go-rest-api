@@ -53,22 +53,13 @@ func ValidateMiddleware(next http.HandlerFunc) http.HandlerFunc {
   })
 }
 
-func TestEndpoint(w http.ResponseWriter, req *http.Request) {
-  decoded := context.Get(req, "decoded")
-  var user User
-  mapstructure.Decode(decoded.(jwt.MapClaims), &user)
-  json.NewEncoder(w).Encode(user)
-}
-
 func (app *App) routes() {
   app.Router = mux.NewRouter()
-  app.Router.HandleFunc("/users/all", app.getUsers).Methods("GET")
-
+  app.Router.HandleFunc("/users", app.getUsers).Methods("GET")
   app.Router.HandleFunc("/users", app.createUser).Methods("POST")
   app.Router.HandleFunc("/authenticate", app.createTokenEndpoint).Methods("POST")
 
-  app.Router.HandleFunc("/test", ValidateMiddleware(TestEndpoint)).Methods("GET")
-
+  app.Router.HandleFunc("/jobs", app.getJobs).Methods("GET")
   app.Router.HandleFunc("/jobs/{id:[0-9]+}", app.getJob).Methods("GET")
   app.Router.HandleFunc("/jobs", ValidateMiddleware(app.createJob)).Methods("POST")
 }

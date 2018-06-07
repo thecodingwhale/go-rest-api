@@ -40,6 +40,20 @@ response
 }
 ```
 
+#### GET - /jobs?limit=$limit&offset=?$offset
+```
+response
+[
+    {
+        "company": "A New World",
+        "id": 1,
+        "location": "Remote",
+        "name": "John Doe",
+        "post": "Senior Software Engineer"
+    }
+]
+```
+
 #### GET - /jobs/{id:[0-9]+}
 ```
 response
@@ -102,4 +116,8 @@ response
   http://www.golangprograms.com/go-language/golang-maps.html
   https://stackoverflow.com/questions/40509575/how-can-i-merge-two-structs-in-golang
   https://medium.com/code-zen/dynamically-creating-instances-from-key-value-pair-map-and-json-in-go-feef83ab9db2
-
+  https://github.com/astaxie/build-web-application-with-golang/blob/master/en/preface.md
+  https://github.com/golang-standards/project-layout
+  https://thenewstack.io/make-a-restful-json-api-go/
+  https://getstream.io/blog/switched-python-go/
+  https://stackshare.io/stream/stream-and-go-news-feeds-for-over-300-million-end-users

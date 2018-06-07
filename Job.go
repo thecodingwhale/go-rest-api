@@ -90,3 +90,41 @@ func (j *Job) createJob(db *sql.DB, userId int) error {
 
   return nil
 }
+
+func (j *Job) getJobs(db *sql.DB, offset, limit int) ([]map[string]interface{}, error) {
+  rows, err := db.Query(`
+    SELECT
+      jobs.id,
+      jobs.post,
+      jobs.location,
+      jobs.company,
+      users.name
+    FROM
+      jobs
+    JOIN
+      users
+      ON jobs.user_id = users.id
+    LIMIT ?
+    OFFSET ?
+  `, limit, offset)
+  if err != nil {
+    return nil, err
+  }
+  jobs := []Job{}
+  allJobs := make([]map[string]interface{}, len(jobs))
+  for rows.Next() {
+    var j Job
+    var u User
+    if err := rows.Scan(&j.Id, &j.Post, &j.Location, &j.Company, &u.Name); err != nil {
+      return nil, err
+    }
+    allJobs = append(allJobs, map[string]interface{}{
+      "id" : j.Id,
+      "post": j.Post,
+      "location": j.Location,
+      "company": j.Company,
+      "name": u.Name,
+    })
+  }
+  return allJobs, nil
+}

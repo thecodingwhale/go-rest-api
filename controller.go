@@ -137,3 +137,24 @@ func (a *App) getJob(w http.ResponseWriter, r *http.Request) {
   responseJson(w, http.StatusOK, job)
 }
 
+func (a *App) getJobs(w http.ResponseWriter, r *http.Request) {
+  base := 10
+  limit, _ := strconv.Atoi(r.FormValue("limit"))
+  offset, _ := strconv.Atoi(r.FormValue("offset"))
+
+  if limit > base || limit < 1 {
+    limit = base
+  }
+  if offset < 0 {
+    offset = 0
+  }
+
+  var j Job
+  jobs, err := j.getJobs(a.DB, offset, limit)
+  if err != nil {
+    responseJsonErr(w, http.StatusInternalServerError, err.Error())
+    return
+  }
+  responseJson(w, http.StatusOK, jobs)
+}
+
