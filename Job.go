@@ -1,10 +1,10 @@
 package main
 
 import (
-  "fmt"
   "log"
-  "database/sql"
+  "time"
   "errors"
+  "database/sql"
 
   _ "github.com/go-sql-driver/mysql"
   "github.com/go-ozzo/ozzo-validation"
@@ -17,6 +17,8 @@ type Job struct {
   Post string `json:"post"`
   Location string `json:"location"`
   Company string `json:"company"`
+  CreatedDate time.Time `json:"created_date,string"`
+  UpdatedDate time.Time `json:"updated_date,string"`
 }
 
 func (j Job) validate() error {
@@ -34,6 +36,8 @@ func (j *Job) getJob(db *sql.DB) (map[string]interface{}, error) {
       jobs.post,
       jobs.location,
       jobs.company,
+      jobs.created_date,
+      jobs.updated_date,
       users.name
     FROM
       jobs
@@ -50,12 +54,14 @@ func (j *Job) getJob(db *sql.DB) (map[string]interface{}, error) {
   defer rows.Close()
   var u User
   for rows.Next() {
-    rows.Scan(&j.Id, &j.Post, &j.Location, &j.Company, &u.Name)
+    rows.Scan(&j.Id, &j.Post, &j.Location, &j.Company, &j.CreatedDate, &j.UpdatedDate, &u.Name)
     return map[string]interface{}{
       "id" : j.Id,
       "post": j.Post,
       "location": j.Location,
       "company": j.Company,
+      "created_date": j.CreatedDate,
+      "updated_date": j.UpdatedDate,
       "name": u.Name,
     }, nil
   }
@@ -70,8 +76,6 @@ func (j *Job) getJob(db *sql.DB) (map[string]interface{}, error) {
 }
 
 func (j *Job) createJob(db *sql.DB, userId int) error {
-  fmt.Println(userId)
-
   query := `
     INSERT INTO jobs (user_id, post, location, company)
     VALUES (?, ?, ?, ?)
@@ -98,6 +102,8 @@ func (j *Job) getJobs(db *sql.DB, offset, limit int) ([]map[string]interface{}, 
       jobs.post,
       jobs.location,
       jobs.company,
+      jobs.created_date,
+      jobs.updated_date,
       users.name
     FROM
       jobs
@@ -115,7 +121,7 @@ func (j *Job) getJobs(db *sql.DB, offset, limit int) ([]map[string]interface{}, 
   for rows.Next() {
     var j Job
     var u User
-    if err := rows.Scan(&j.Id, &j.Post, &j.Location, &j.Company, &u.Name); err != nil {
+    if err := rows.Scan(&j.Id, &j.Post, &j.Location, &j.Company, &j.CreatedDate, &j.UpdatedDate, &u.Name); err != nil {
       return nil, err
     }
     allJobs = append(allJobs, map[string]interface{}{
@@ -123,6 +129,8 @@ func (j *Job) getJobs(db *sql.DB, offset, limit int) ([]map[string]interface{}, 
       "post": j.Post,
       "location": j.Location,
       "company": j.Company,
+      "created_date": j.CreatedDate,
+      "updated_date": j.UpdatedDate,
       "name": u.Name,
     })
   }
@@ -136,7 +144,8 @@ func (j *Job) updateJob(db *sql.DB, userId int, jobId int) (map[string]interface
     SET
       post = ?,
       location = ?,
-      company = ?
+      company = ?,
+      updated_date = NOW()
     WHERE
       id = ?
     AND
@@ -154,11 +163,7 @@ func (j *Job) updateJob(db *sql.DB, userId int, jobId int) (map[string]interface
   }
 
   if count != 0 {
-    return map[string]interface{}{
-      "post": j.Post,
-      "location": j.Location,
-      "company": j.Company,
-    }, nil
+    return map[string]interface{}{}, nil
   }
 
   return nil, errors.New("No job post found.")

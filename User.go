@@ -3,10 +3,10 @@ package main
 import (
   "os"
   "fmt"
-  "database/sql"
+  "time"
   "log"
   "errors"
-  // "reflect"
+  "database/sql"
 
   _ "github.com/go-sql-driver/mysql"
   "github.com/go-ozzo/ozzo-validation"
@@ -16,10 +16,12 @@ import (
 )
 
 type User struct {
-  Id        int       `json:"id"`
-  Email     string    `json:"email"`
-  Name      string    `json:"name"`
-  Password  string    `json:"password"`
+  Id int `json:"id"`
+  Email string `json:"email"`
+  Name string `json:"name"`
+  Password string `json:"password"`
+  CreatedDate time.Time `json:"created_date,string"`
+  UpdatedDate time.Time `json:"updated_date,string"`
 }
 
 func (u User) validate() error {
@@ -100,7 +102,7 @@ func (u User) isUserExists(db *sql.DB) (tokenString string, err error) {
 }
 
 func getUsers(db *sql.DB) ([]User, error) {
-  statement := fmt.Sprintf("SELECT id, email, name, password FROM users")
+  statement := fmt.Sprintf("SELECT id, email, name, password, created_date, updated_date FROM users")
   rows, err := db.Query(statement)
   if err != nil {
     return nil, err
@@ -109,7 +111,7 @@ func getUsers(db *sql.DB) ([]User, error) {
   users := []User{}
   for rows.Next() {
     var u User
-    if err := rows.Scan(&u.Id, &u.Name, &u.Email, &u.Password); err != nil {
+    if err := rows.Scan(&u.Id, &u.Name, &u.Email, &u.Password, &u.CreatedDate, &u.UpdatedDate); err != nil {
       return nil, err
     }
     users = append(users, u)

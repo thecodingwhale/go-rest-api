@@ -16,7 +16,7 @@ type App struct {
 }
 
 func (app *App) database(driver, user, password, name string) {
-  connectionString := fmt.Sprintf("%s:%s@/%s", user, password, name)
+  connectionString := fmt.Sprintf("%s:%s@/%s?parseTime=true", user, password, name)
   var err error
   app.DB, err = sql.Open(driver, connectionString)
   if err != nil {
