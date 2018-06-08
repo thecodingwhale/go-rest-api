@@ -200,3 +200,30 @@ func (a *App) updateJob(w http.ResponseWriter, r *http.Request) {
   // 2. throw empty string json object.
   responseJson(w, http.StatusCreated, updatedJob)
 }
+
+func (a *App) deleteJob(w http.ResponseWriter, r *http.Request) {
+  var j Job
+  vars := mux.Vars(r)
+  id, err := strconv.Atoi(vars["id"])
+  if err != nil {
+    responseJsonErr(w, http.StatusBadRequest, "Missing job id")
+    return
+  }
+
+  // decode token from headers
+  var u User
+  decoded := context.Get(r, "decoded")
+  mapstructure.Decode(decoded.(jwt.MapClaims), &u)
+
+  // update job base on user id and jobId
+  deletedJob, err := j.deleteJob(a.DB, u.Id, id);
+  if err != nil {
+    responseJsonErr(w, http.StatusInternalServerError, err.Error())
+    return
+  }
+
+  defer r.Body.Close()
+
+  // 2. throw empty string json object.
+  responseJson(w, http.StatusCreated, deletedJob)
+}

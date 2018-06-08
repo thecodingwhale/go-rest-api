@@ -168,3 +168,30 @@ func (j *Job) updateJob(db *sql.DB, userId int, jobId int) (map[string]interface
 
   return nil, errors.New("No job post found.")
 }
+
+func (j *Job) deleteJob(db *sql.DB, userId int, jobId int) (map[string]interface{}, error) {
+  stmt, err := db.Prepare(`
+    DELETE FROM
+      jobs
+    WHERE
+      id = ?
+    AND
+      user_id = ?
+  `)
+  res, err := stmt.Exec(jobId, userId)
+  if err != nil {
+    log.Fatal(err)
+    return nil, err
+  }
+
+  count, err := res.RowsAffected()
+  if err != nil {
+    log.Fatal(err)
+  }
+
+  if count != 0 {
+    return map[string]interface{}{}, nil
+  }
+
+  return nil, errors.New("No job post found.")
+}

@@ -62,5 +62,6 @@ func (app *App) routes() {
   app.Router.HandleFunc("/jobs", app.getJobs).Methods("GET")
   app.Router.HandleFunc("/jobs/{id:[0-9]+}", app.getJob).Methods("GET")
   app.Router.HandleFunc("/jobs/{id:[0-9]+}", ValidateMiddleware(app.updateJob)).Methods("PUT")
+  app.Router.HandleFunc("/jobs/{id:[0-9]+}", ValidateMiddleware(app.deleteJob)).Methods("DELETE")
   app.Router.HandleFunc("/jobs", ValidateMiddleware(app.createJob)).Methods("POST")
 }
