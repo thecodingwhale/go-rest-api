@@ -1,10 +1,11 @@
 package main
 
 import (
-  // "fmt"
+  // "log"
   "strconv"
   "net/http"
   "encoding/json"
+  // "io/ioutil"
 
   "github.com/gorilla/context"
   "github.com/gorilla/mux"
@@ -59,6 +60,45 @@ func (a *App) createUser(w http.ResponseWriter, r *http.Request) {
   // 3. throw empty string json object.
   responseJson(w, http.StatusCreated, map[string]string{})
 }
+
+
+func (a *App) updateUser(w http.ResponseWriter, r *http.Request) {
+  vars := mux.Vars(r)
+  id, err := strconv.Atoi(vars["id"])
+  if err != nil {
+    responseJsonErr(w, http.StatusBadRequest, "Missing user id")
+    return
+  }
+
+  var u User
+  decoder := json.NewDecoder(r.Body)
+  if err := decoder.Decode(&u); err != nil {
+    responseJsonErr(w, http.StatusBadRequest, "Invalid request payload")
+    return
+  }
+
+  // add validation
+  if err := u.validate(); err != nil {
+    response, _ := json.Marshal(map[string]error{"error": err})
+    w.Header().Set("Content-Type", "application/json")
+    w.WriteHeader(http.StatusBadRequest)
+    w.Write(response)
+    return
+  }
+
+  // update job base on user id and jobId
+  updateUser, err := u.updateUser(a.DB, id);
+  if err != nil {
+    responseJsonErr(w, http.StatusInternalServerError, err.Error())
+    return
+  }
+
+  defer r.Body.Close()
+
+  // 2. throw empty string json object.
+  responseJson(w, http.StatusCreated, updateUser)
+}
+
 
 func (a *App) createTokenEndpoint(w http.ResponseWriter, r *http.Request) {
   var u User

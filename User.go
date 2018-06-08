@@ -140,6 +140,37 @@ func (u *User) createUser(db *sql.DB) error {
   return nil
 }
 
+func (u *User) updateUser(db *sql.DB, userId int) (map[string]interface{}, error) {
+  stmt, err := db.Prepare(`
+    UPDATE
+      users
+    SET
+      email = ?,
+      name = ?,
+      password = ?,
+      updated_date = NOW()
+    WHERE
+      id = ?
+  `)
+  hashPassword, _ := HashPassword(u.Password)
+  res, err := stmt.Exec(u.Email, u.Name, hashPassword, userId)
+  if err != nil {
+    log.Fatal(err)
+    return nil, err
+  }
+
+  count, err := res.RowsAffected()
+  if err != nil {
+    log.Fatal(err)
+  }
+
+  if count != 0 {
+    return map[string]interface{}{}, nil
+  }
+
+  return nil, errors.New("No user found.")
+}
+
 func checkErr(err error) {
   if err != nil {
     panic(err)

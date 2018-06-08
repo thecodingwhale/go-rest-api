@@ -57,6 +57,7 @@ func (app *App) routes() {
   app.Router = mux.NewRouter()
   app.Router.HandleFunc("/users", app.getUsers).Methods("GET")
   app.Router.HandleFunc("/users", app.createUser).Methods("POST")
+  app.Router.HandleFunc("/users/{id:[0-9]+}", ValidateMiddleware(app.updateUser)).Methods("PUT")
   app.Router.HandleFunc("/authenticate", app.createTokenEndpoint).Methods("POST")
 
   app.Router.HandleFunc("/jobs", app.getJobs).Methods("GET")
