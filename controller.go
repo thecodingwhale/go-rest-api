@@ -1,6 +1,7 @@
 package main
 
 import (
+  // "fmt"
   "strconv"
   "net/http"
   "encoding/json"
@@ -158,3 +159,44 @@ func (a *App) getJobs(w http.ResponseWriter, r *http.Request) {
   responseJson(w, http.StatusOK, jobs)
 }
 
+func (a *App) updateJob(w http.ResponseWriter, r *http.Request) {
+  var j Job
+  vars := mux.Vars(r)
+  id, err := strconv.Atoi(vars["id"])
+  if err != nil {
+    responseJsonErr(w, http.StatusBadRequest, "Missing job id")
+    return
+  }
+
+  decoder := json.NewDecoder(r.Body)
+  if err := decoder.Decode(&j); err != nil {
+    responseJsonErr(w, http.StatusBadRequest, "Invalid request payload")
+    return
+  }
+
+  // add validation
+  if err := j.validate(); err != nil {
+    response, _ := json.Marshal(map[string]error{"error": err})
+    w.Header().Set("Content-Type", "application/json")
+    w.WriteHeader(http.StatusBadRequest)
+    w.Write(response)
+    return
+  }
+
+  // decode token from headers
+  var u User
+  decoded := context.Get(r, "decoded")
+  mapstructure.Decode(decoded.(jwt.MapClaims), &u)
+
+  // update job base on user id and jobId
+  updatedJob, err := j.updateJob(a.DB, u.Id, id);
+  if err != nil {
+    responseJsonErr(w, http.StatusInternalServerError, err.Error())
+    return
+  }
+
+  defer r.Body.Close()
+
+  // 2. throw empty string json object.
+  responseJson(w, http.StatusCreated, updatedJob)
+}

@@ -121,3 +121,5 @@ response
   https://thenewstack.io/make-a-restful-json-api-go/
   https://getstream.io/blog/switched-python-go/
   https://stackshare.io/stream/stream-and-go-news-feeds-for-over-300-million-end-users
+  https://www.calhoun.io/updating-and-deleting-postgresql-records-using-gos-sql-package/
+  https://www.alexedwards.net/blog/practical-persistence-sql

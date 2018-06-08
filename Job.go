@@ -128,3 +128,38 @@ func (j *Job) getJobs(db *sql.DB, offset, limit int) ([]map[string]interface{}, 
   }
   return allJobs, nil
 }
+
+func (j *Job) updateJob(db *sql.DB, userId int, jobId int) (map[string]interface{}, error) {
+  stmt, err := db.Prepare(`
+    UPDATE
+      jobs
+    SET
+      post = ?,
+      location = ?,
+      company = ?
+    WHERE
+      id = ?
+    AND
+      user_id = ?
+  `)
+  res, err := stmt.Exec(j.Post, j.Location, j.Company, jobId, userId)
+  if err != nil {
+    log.Fatal(err)
+    return nil, err
+  }
+
+  count, err := res.RowsAffected()
+  if err != nil {
+    log.Fatal(err)
+  }
+
+  if count != 0 {
+    return map[string]interface{}{
+      "post": j.Post,
+      "location": j.Location,
+      "company": j.Company,
+    }, nil
+  }
+
+  return nil, errors.New("No job post found.")
+}
