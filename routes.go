@@ -53,7 +53,11 @@ func ValidateMiddleware(next http.HandlerFunc) http.HandlerFunc {
   })
 }
 
-func (app *App) routes() {
+func NotFound(w http.ResponseWriter, r *http.Request) {
+  responseJsonErr(w, http.StatusNotFound, "Not Found.")
+}
+
+func (app *App) Routes() {
   app.Router = mux.NewRouter()
   app.Router.HandleFunc("/users", app.getUsers).Methods("GET")
   app.Router.HandleFunc("/users", app.createUser).Methods("POST")
@@ -65,4 +69,5 @@ func (app *App) routes() {
   app.Router.HandleFunc("/jobs/{id:[0-9]+}", ValidateMiddleware(app.updateJob)).Methods("PUT")
   app.Router.HandleFunc("/jobs/{id:[0-9]+}", ValidateMiddleware(app.deleteJob)).Methods("DELETE")
   app.Router.HandleFunc("/jobs", ValidateMiddleware(app.createJob)).Methods("POST")
+  app.Router.NotFoundHandler = http.HandlerFunc(NotFound)
 }
