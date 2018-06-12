@@ -6,6 +6,11 @@
 go build && ./go-rest-api
 ```
 
+### Test
+```
+go test -coverprofile cp.out && go tool cover -html=cp.out
+```
+
 type User struct {
   Id
   Email

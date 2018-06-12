@@ -1,7 +1,7 @@
 package main_test
 
 import (
-  "."
+  main "go-rest-api"
   "os"
   "log"
   "testing"
@@ -91,5 +91,20 @@ func TestInvalidTypeParameter(t *testing.T) {
   json.Unmarshal(response.Body.Bytes(), &m)
   if m["error"] != "Not Found." {
     t.Errorf("Expected the 'error' key of the response to be set to 'Not Found.'. Got '%s'", m["error"])
+  }
+}
+
+func TestGetNonExistentJob(t *testing.T) {
+  clearTable()
+
+  req, _ := http.NewRequest("GET", "/jobs/1", nil)
+  response := executeRequest(req)
+
+  checkResponseCode(t, http.StatusNotFound, response.Code)
+
+  var m map[string]string
+  json.Unmarshal(response.Body.Bytes(), &m)
+  if m["error"] != "No job post found." {
+    t.Errorf("Expected the 'error' key of the response to be set to 'No job post found.'. Got '%s'", m["error"])
   }
 }
