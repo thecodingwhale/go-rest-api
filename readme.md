@@ -123,3 +123,6 @@ response
   https://stackshare.io/stream/stream-and-go-news-feeds-for-over-300-million-end-users
   https://www.calhoun.io/updating-and-deleting-postgresql-records-using-gos-sql-package/
   https://www.alexedwards.net/blog/practical-persistence-sql
+  https://github.com/qiangxue/golang-restful-starter-kit
+  https://blog.questionable.services/article/testing-http-handlers-go/
+  https://semaphoreci.com/community/tutorials/building-and-testing-a-rest-api-in-go-with-gorilla-mux-and-postgresql
