@@ -1,6 +1,7 @@
 package main_test
 
 import (
+  "log"
   "testing"
   "encoding/json"
   "net/http"
@@ -34,11 +35,10 @@ func TestGetNonExistentJob(t *testing.T) {
 
 func TestGetJob(t *testing.T) {
   clearTable()
-  insertUserQuery := `INSERT INTO users (email, name, password)VALUES (?, ?, ?)`
-  a.DB.Exec(insertUserQuery, "foo@email.com", "username", "password")
+  user := createUser()
+  log.Println()
 
-  insertJobQuery := `INSERT INTO jobs (user_id, post, location, company) VALUES (?, ?, ?, ?)`
-  a.DB.Exec(insertJobQuery, "1", "post", "location", "company")
+  createJob(user["id"])
 
   req, _ := http.NewRequest("GET", "/jobs/1", nil)
   response := executeRequest(req)

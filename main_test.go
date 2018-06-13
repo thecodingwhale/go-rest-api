@@ -2,6 +2,7 @@ package main_test
 
 import (
   main "go-rest-api"
+  helpers "go-rest-api"
   "os"
   "log"
   "testing"
@@ -10,6 +11,7 @@ import (
   "net/http/httptest"
 
   "github.com/joho/godotenv"
+  "github.com/icrowley/fake"
 )
 
 var a main.App
@@ -81,6 +83,35 @@ func checkResponseCode(t *testing.T, expected, actual int) {
   if expected != actual {
     t.Errorf("Expected response code %d. Got %d\n", expected, actual)
   }
+}
+
+func createUser() map[string]interface{} {
+  query := `INSERT INTO users (email, name, password) VALUES (?, ?, ?)`
+  email := fake.EmailAddress()
+  name := fake.FullName()
+  password, _ := helpers.HashPassword("password")
+
+  res, err := a.DB.Exec(query, email, name, password)
+  if err != nil {
+    log.Fatal(err)
+  }
+
+  id, err := res.LastInsertId()
+  if err != nil {
+    log.Fatal(err)
+  }
+
+  return map[string]interface{}{
+    "id" : id,
+    "email": email,
+    "name": name,
+    "password": password,
+  }
+}
+
+func createJob(userId interface{}) {
+  query := `INSERT INTO jobs (user_id, post, location, company) VALUES (?, ?, ?, ?)`
+  a.DB.Exec(query, userId, fake.JobTitle(), fake.State(), fake.Company())
 }
 
 func TestInvalidTypeParameter(t *testing.T) {

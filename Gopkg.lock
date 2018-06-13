@@ -8,6 +8,12 @@
   version = "v9"
 
 [[projects]]
+  branch = "master"
+  name = "github.com/corpix/uarand"
+  packages = ["."]
+  revision = "2b8494104d86337cdd41d0a49cbed8e4583c0ab4"
+
+[[projects]]
   name = "github.com/dgrijalva/jwt-go"
   packages = ["."]
   revision = "06ea1031745cb8b3dab3f6a236daf2b0aa468b7e"
@@ -41,10 +47,22 @@
   version = "v1.6.2"
 
 [[projects]]
+  branch = "master"
+  name = "github.com/icrowley/fake"
+  packages = ["."]
+  revision = "4178557ae428460c3780a381c824a1f3aceb6325"
+
+[[projects]]
   name = "github.com/joho/godotenv"
   packages = ["."]
   revision = "a79fa1e548e2c689c241d10173efd51e5d689d5b"
   version = "v1.2.0"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/malisit/kolpa"
+  packages = ["."]
+  revision = "10c4658a62cbd37e83531a3a2732c1dab63eb6c9"
 
 [[projects]]
   branch = "master"
@@ -70,6 +88,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "db45b0b526efd03dcbae28b573917ab30a3ff19a4faad49559cba59429bbbea7"
+  inputs-digest = "74b23e6bc133a38b65730400eca4cc8c5857631665e33a442d0de279e8f35faf"
   solver-name = "gps-cdcl"
   solver-version = 1

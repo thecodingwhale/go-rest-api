@@ -60,3 +60,11 @@
 [prune]
   go-tests = true
   unused-packages = true
+
+[[constraint]]
+  name = "github.com/bxcodec/faker"
+  version = "1.4.3"
+
+[[constraint]]
+  branch = "master"
+  name = "github.com/icrowley/fake"
