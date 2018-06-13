@@ -160,12 +160,7 @@ func (a *App) createJob(w http.ResponseWriter, r *http.Request) {
 
 func (a *App) getJob(w http.ResponseWriter, r *http.Request) {
   vars := mux.Vars(r)
-  id, err := strconv.Atoi(vars["id"])
-
-  if err != nil {
-    responseJsonErr(w, http.StatusBadRequest, "Invalid user ID.")
-    return
-  }
+  id, _ := strconv.Atoi(vars["id"])
 
   j := Job{
     Id: id,

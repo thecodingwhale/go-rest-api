@@ -26,26 +26,31 @@ func TestMain(m *testing.M) {
     os.Getenv("TEST_DB_PASSWORD"),
     os.Getenv("TEST_DB_NAME"),
   )
-  a.Routes()
 
   ensureTableExists()
+
+  a.Routes()
   code := m.Run()
+
   clearTable()
   os.Exit(code)
 }
 
 func clearTable() {
-  a.DB.Exec("DELETE FROM jobs")
-  a.DB.Exec("ALTER SEQUENCE products_id_seq RESTART WITH 1")
+  a.DB.Exec("TRUNCATE TABLE jobs")
+  a.DB.Exec("TRUNCATE TABLE users")
 }
 
 func ensureTableExists() {
-  if _, err := a.DB.Exec(tableCreationQuery); err != nil {
+  if _, err := a.DB.Exec(tableJobsCreationQuery); err != nil {
+    log.Fatal(err)
+  }
+  if _, err := a.DB.Exec(tableUsersCreationQuery); err != nil {
     log.Fatal(err)
   }
 }
 
-const tableCreationQuery = `CREATE TABLE IF NOT EXISTS jobs (
+const tableJobsCreationQuery = `CREATE TABLE IF NOT EXISTS jobs (
   id int(11) unsigned NOT NULL AUTO_INCREMENT,
   user_id int(11) NOT NULL,
   post varchar(255) DEFAULT '',
@@ -56,6 +61,16 @@ const tableCreationQuery = `CREATE TABLE IF NOT EXISTS jobs (
   PRIMARY KEY (id)
 ) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8;`
 
+const tableUsersCreationQuery = `CREATE TABLE IF NOT EXISTS users (
+  id int(11) unsigned NOT NULL AUTO_INCREMENT,
+  email varchar(255) DEFAULT NULL,
+  name varchar(255) DEFAULT NULL,
+  password varchar(255) DEFAULT NULL,
+  created_date datetime DEFAULT CURRENT_TIMESTAMP,
+  updated_date datetime DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (id)
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8;`
+
 func executeRequest(req *http.Request) *httptest.ResponseRecorder {
   rr := httptest.NewRecorder()
   a.Router.ServeHTTP(rr, req)
@@ -65,17 +80,6 @@ func executeRequest(req *http.Request) *httptest.ResponseRecorder {
 func checkResponseCode(t *testing.T, expected, actual int) {
   if expected != actual {
     t.Errorf("Expected response code %d. Got %d\n", expected, actual)
-  }
-}
-
-func TestEmptyJobs(t *testing.T) {
-  clearTable()
-  req, _ := http.NewRequest("GET", "/jobs", nil)
-  response := executeRequest(req)
-
-  checkResponseCode(t, http.StatusOK, response.Code)
-  if body := response.Body.String(); body != "[]" {
-    t.Errorf("Expected an empty array. Got %s", body)
   }
 }
 
@@ -91,20 +95,5 @@ func TestInvalidTypeParameter(t *testing.T) {
   json.Unmarshal(response.Body.Bytes(), &m)
   if m["error"] != "Not Found." {
     t.Errorf("Expected the 'error' key of the response to be set to 'Not Found.'. Got '%s'", m["error"])
-  }
-}
-
-func TestGetNonExistentJob(t *testing.T) {
-  clearTable()
-
-  req, _ := http.NewRequest("GET", "/jobs/1", nil)
-  response := executeRequest(req)
-
-  checkResponseCode(t, http.StatusNotFound, response.Code)
-
-  var m map[string]string
-  json.Unmarshal(response.Body.Bytes(), &m)
-  if m["error"] != "No job post found." {
-    t.Errorf("Expected the 'error' key of the response to be set to 'No job post found.'. Got '%s'", m["error"])
   }
 }
