@@ -8,6 +8,12 @@
   version = "v9"
 
 [[projects]]
+  name = "github.com/bitly/go-simplejson"
+  packages = ["."]
+  revision = "aabad6e819789e569bd6aabf444c935aa9ba1e44"
+  version = "v0.5.0"
+
+[[projects]]
   branch = "master"
   name = "github.com/corpix/uarand"
   packages = ["."]
@@ -60,12 +66,6 @@
 
 [[projects]]
   branch = "master"
-  name = "github.com/malisit/kolpa"
-  packages = ["."]
-  revision = "10c4658a62cbd37e83531a3a2732c1dab63eb6c9"
-
-[[projects]]
-  branch = "master"
   name = "github.com/mitchellh/mapstructure"
   packages = ["."]
   revision = "bb74f1db0675b241733089d5a1faa5dd8b0ef57b"
@@ -88,6 +88,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "74b23e6bc133a38b65730400eca4cc8c5857631665e33a442d0de279e8f35faf"
+  inputs-digest = "9ab6a7619dfbe3992fa1c7ac1036014221ae09a93e8c31c1b3d929e6947e720f"
   solver-name = "gps-cdcl"
   solver-version = 1

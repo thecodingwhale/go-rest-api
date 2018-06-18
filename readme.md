@@ -131,3 +131,5 @@ response
   https://github.com/qiangxue/golang-restful-starter-kit
   https://blog.questionable.services/article/testing-http-handlers-go/
   https://semaphoreci.com/community/tutorials/building-and-testing-a-rest-api-in-go-with-gorilla-mux-and-postgresql
+  https://getstream.io/blog/switched-python-go/
+  https://medium.com/@xoen/go-testing-technique-testing-json-http-requests-76d9ce0e11f
