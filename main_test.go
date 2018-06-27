@@ -6,6 +6,7 @@ import (
   "os"
   "log"
   "testing"
+  "strings"
   "encoding/json"
   "net/http"
   "net/http/httptest"
@@ -87,7 +88,31 @@ func checkResponseCode(t *testing.T, expected, actual int) {
 
 func createUser() map[string]interface{} {
   query := `INSERT INTO users (email, name, password) VALUES (?, ?, ?)`
-  email := fake.EmailAddress()
+  email := strings.ToLower(fake.EmailAddress())
+  name := fake.FullName()
+  password, _ := helpers.HashPassword("password")
+
+  res, err := a.DB.Exec(query, email, name, password)
+  if err != nil {
+    log.Fatal(err)
+  }
+
+  id, err := res.LastInsertId()
+  if err != nil {
+    log.Fatal(err)
+  }
+
+  return map[string]interface{}{
+    "id" : id,
+    "email": email,
+    "name": name,
+    "password": password,
+  }
+}
+
+func createUserEmail(e string) map[string]interface{} {
+  query := `INSERT INTO users (email, name, password) VALUES (?, ?, ?)`
+  email := e
   name := fake.FullName()
   password, _ := helpers.HashPassword("password")
 

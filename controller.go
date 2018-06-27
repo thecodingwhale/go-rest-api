@@ -26,7 +26,7 @@ func (a *App) createUser(w http.ResponseWriter, r *http.Request) {
   var u User
   decoder := json.NewDecoder(r.Body)
   if err := decoder.Decode(&u); err != nil {
-    responseJsonErr(w, http.StatusBadRequest, "Invalid request payload")
+    responseJsonErr(w, http.StatusNotFound, "Invalid request payload")
     return
   }
 
@@ -36,16 +36,16 @@ func (a *App) createUser(w http.ResponseWriter, r *http.Request) {
   if err := u.validate(); err != nil {
     response, _ := json.Marshal(map[string]error{"error": err})
     w.Header().Set("Content-Type", "application/json")
-    w.WriteHeader(http.StatusBadRequest)
+    w.WriteHeader(http.StatusNotFound)
     w.Write(response)
     return
   }
 
   // 2. check if email is already registered.
   if err := u.isEmailExists(a.DB); err != nil {
-    response, _ := json.Marshal(map[string]map[string]string{"error": { "email": err.Error() }})
+    response, _ := json.Marshal(map[string]map[string]string{"error": { "email": "email already exists" }})
     w.Header().Set("Content-Type", "application/json")
-    w.WriteHeader(http.StatusBadRequest)
+    w.WriteHeader(http.StatusNotFound)
     w.Write(response)
     return
   }
@@ -60,7 +60,6 @@ func (a *App) createUser(w http.ResponseWriter, r *http.Request) {
   // 3. throw empty string json object.
   responseJson(w, http.StatusCreated, map[string]string{})
 }
-
 
 func (a *App) updateUser(w http.ResponseWriter, r *http.Request) {
   vars := mux.Vars(r)

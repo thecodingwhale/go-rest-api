@@ -5,8 +5,7 @@ import (
   "testing"
   "encoding/json"
   "net/http"
-
-  // "github.com/bitly/go-simplejson"
+  "bytes"
 )
 
 func TestEmptyJobs(t *testing.T) {
@@ -23,8 +22,8 @@ func TestEmptyJobs(t *testing.T) {
 func TestGetJobsWithUrlParameters(t *testing.T) {
   clearTable()
   numberOfUsers := 13
+  user := createUser()
   for i := 0; i < numberOfUsers; i++ {
-    user := createUser()
     createJob(user["id"])
   }
 
@@ -36,7 +35,6 @@ func TestGetJobsWithUrlParameters(t *testing.T) {
   req.URL.RawQuery = q.Encode()
 
   req.URL.RawQuery = q.Encode()
-  log.Println(req.URL.String())
 
   response := executeRequest(req)
 
@@ -56,8 +54,8 @@ func TestGetJobsWithUrlParameters(t *testing.T) {
 func TestGetJobs(t *testing.T) {
   clearTable()
   numberOfUsers := 13
+  user := createUser()
   for i := 0; i < numberOfUsers; i++ {
-    user := createUser()
     createJob(user["id"])
   }
 
@@ -105,41 +103,77 @@ func TestGetJob(t *testing.T) {
   checkResponseCode(t, http.StatusOK, response.Code)
 }
 
-/*
-func TestPublishOK(t *testing.T) {
-  msg := "Test message"
-  ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-    w.WriteHeader(http.StatusOK)
-    if r.Method != "POST" {
-      t.Errorf("Expected ‘POST’ request, got ‘%s’", r.Method)
-    }
-    if r.URL.EscapedPath() != "/pub" {
-      t.Errorf("Expected request to ‘/pub’, got ‘%s’", r.URL.EscapedPath())
-    }
-    r.ParseForm()
-    topic := r.Form.Get("topic")
-    if topic != "meaningful-topic" {
-      t.Errorf("Expected request to have ‘topic=meaningful-topic’, got: ‘%s’", topic)
-    }
-    reqJson, err := simplejson.NewFromReader(r.Body)
-    if err != nil {
-      t.Errorf("Error while reading request JSON: %s", err)
-    }
-    lifeMeaning := reqJson.GetPath("meta", "lifeMeaning").MustInt()
-    if lifeMeaning != 42 {
-      t.Errorf("Expected request JSON to have meta/lifeMeaning = 42, got %d", lifeMeaning)
-    }
-    msgActual := reqJson.GetPath("data", "message").MustString()
-    if msgActual != msg {
-      t.Errorf("Expected request JSON to have data/message = ‘%s’, got ‘%s’", msg, msgActual)
-    }
-  }))
-  defer ts.Close()
-  nsqdUrl := ts.URL
-  err := Publish(nsqdUrl, msg)
-  if err != nil {
-    t.Errorf("Publish() returned an error: %s", err)
+func TestCreateUserSuccesfully(t *testing.T) {
+  clearTable();
+  payload := []byte(`{"email":"foo@email.com","name":"foobarbaz","password":"12345678"}`)
+  req, _ := http.NewRequest("POST", "/users", bytes.NewBuffer(payload))
+  response := executeRequest(req)
+  checkResponseCode(t, http.StatusCreated, response.Code)
+
+  var m map[string]string
+  json.Unmarshal(response.Body.Bytes(), &m)
+
+  if len(m) != 0 {
+    t.Errorf("Expected reponse should return 0 or empty. Got '%d'", len(m))
   }
 }
 
-*/
+func TestCreateUserInvalidRequestPayloadFailed(t *testing.T) {
+  clearTable();
+  body := ``
+  payload := []byte(body)
+  req, _ := http.NewRequest("POST", "/users", bytes.NewBuffer(payload))
+  response := executeRequest(req)
+  checkResponseCode(t, http.StatusNotFound, response.Code)
+
+  var m map[string]string
+  json.Unmarshal(response.Body.Bytes(), &m)
+  if m["error"] != "Invalid request payload" {
+    t.Errorf("Expected the 'error' key of the response to be set to 'Invalid request payload'. Got '%s'", m["error"])
+  }
+}
+
+
+func TestCreateUserEmptyBodyFailed(t *testing.T) {
+  clearTable();
+  payload := []byte(`{}`)
+  req, _ := http.NewRequest("POST", "/users", bytes.NewBuffer(payload))
+  response := executeRequest(req)
+
+  checkResponseCode(t, http.StatusNotFound, response.Code)
+
+  var m map[string]interface{}
+  json.Unmarshal(response.Body.Bytes(), &m)
+
+  email := m["error"].(map[string]interface{})["email"]
+  password := m["error"].(map[string]interface{})["password"]
+  name := m["error"].(map[string]interface{})["name"]
+
+  if email != "cannot be blank" {
+    t.Errorf("expected error '%s'", "cannot be blank")
+  }
+  if password != "cannot be blank" {
+    t.Errorf("expected error '%s'", "cannot be blank")
+  }
+  if name != "cannot be blank" {
+    t.Errorf("expected error '%s'", "cannot be blank")
+  }
+}
+
+func TestCreateUserEmailAlreadyExistsFailed(t *testing.T) {
+  clearTable();
+  inputEmail := "foo@email.com"
+  createUserEmail(inputEmail)
+  payload := []byte(`{"email":"` + inputEmail + `","name":"foobarbaz","password":"12345678"}`)
+  req, _ := http.NewRequest("POST", "/users", bytes.NewBuffer(payload))
+  response := executeRequest(req)
+  checkResponseCode(t, http.StatusNotFound, response.Code)
+
+  var m map[string]interface{}
+  json.Unmarshal(response.Body.Bytes(), &m)
+  email := m["error"].(map[string]interface{})["email"]
+
+  if email != "email already exists" {
+    t.Errorf("Expected the 'error' key of the response to be set to 'email already exists'. Got '%s'", email)
+  }
+}
