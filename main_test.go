@@ -7,6 +7,7 @@ import (
   "log"
   "testing"
   "strings"
+  "bytes"
   "encoding/json"
   "net/http"
   "net/http/httptest"
@@ -137,6 +138,22 @@ func createUserEmail(e string) map[string]interface{} {
 func createJob(userId interface{}) {
   query := `INSERT INTO jobs (user_id, post, location, company) VALUES (?, ?, ?, ?)`
   a.DB.Exec(query, userId, fake.JobTitle(), fake.State(), fake.Company())
+}
+
+func createToken(t *testing.T) string {
+  inputEmail := "foo@email.com"
+  password := "password"
+  createUserEmail(inputEmail)
+
+  payload := []byte(`{"email":"`+ inputEmail +`","password":"`+ password +`"}`)
+  req, _ := http.NewRequest("POST", "/authenticate", bytes.NewBuffer(payload))
+  response := executeRequest(req)
+  checkResponseCode(t, http.StatusCreated, response.Code)
+
+  var m map[string]string
+  json.Unmarshal(response.Body.Bytes(), &m)
+
+  return m["token"]
 }
 
 func TestInvalidTypeParameter(t *testing.T) {

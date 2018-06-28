@@ -3,9 +3,12 @@ package main_test
 import (
   "log"
   "testing"
+  // "os"
+  "bytes"
   "encoding/json"
   "net/http"
-  "bytes"
+
+  // "github.com/joho/godotenv"
 )
 
 func TestEmptyJobs(t *testing.T) {
@@ -177,3 +180,64 @@ func TestCreateUserEmailAlreadyExistsFailed(t *testing.T) {
     t.Errorf("Expected the 'error' key of the response to be set to 'email already exists'. Got '%s'", email)
   }
 }
+
+func TestCreateJobSuccesfully(t *testing.T) {
+  clearTable();
+  token := createToken(t);
+  payload := []byte(`{"company": "sample company", "location": "sample location", "post": "sample post"}`)
+  req, _ := http.NewRequest("POST", "/jobs", bytes.NewBuffer(payload))
+  req.Header.Set("Authorization", "Bearer: " + token)
+  response := executeRequest(req)
+  checkResponseCode(t, http.StatusCreated, response.Code)
+
+  var m map[string]interface{}
+  json.Unmarshal(response.Body.Bytes(), &m)
+
+  if len(m) != 0 {
+    t.Errorf("Expected reponse should return 0 or empty. Got '%d'", len(m))
+  }
+}
+
+func TestCreateJobEmptyBodyFailed(t *testing.T) {
+  clearTable();
+  token := createToken(t);
+  payload := []byte(`{}`)
+  req, _ := http.NewRequest("POST", "/jobs", bytes.NewBuffer(payload))
+  req.Header.Set("Authorization", "Bearer: " + token)
+  response := executeRequest(req)
+  checkResponseCode(t, http.StatusBadRequest, response.Code)
+
+  var m map[string]interface{}
+  json.Unmarshal(response.Body.Bytes(), &m)
+
+  company := m["error"].(map[string]interface{})["company"]
+  location := m["error"].(map[string]interface{})["location"]
+  post := m["error"].(map[string]interface{})["post"]
+
+  if company != "cannot be blank" {
+    t.Errorf("expected error '%s'", "cannot be blank")
+  }
+  if location != "cannot be blank" {
+    t.Errorf("expected error '%s'", "cannot be blank")
+  }
+  if post != "cannot be blank" {
+    t.Errorf("expected error '%s'", "cannot be blank")
+  }
+}
+
+func TestCreateJobInvalidRequestPayloadFailed(t *testing.T) {
+  clearTable();
+  token := createToken(t);
+  payload := []byte(``)
+  req, _ := http.NewRequest("POST", "/jobs", bytes.NewBuffer(payload))
+  req.Header.Set("Authorization", "Bearer: " + token)
+  response := executeRequest(req)
+  checkResponseCode(t, http.StatusBadRequest, response.Code)
+
+  var m map[string]string
+  json.Unmarshal(response.Body.Bytes(), &m)
+  if m["error"] != "Invalid request payload" {
+    t.Errorf("Expected the 'error' key of the response to be set to 'Invalid request payload'. Got '%s'", m["error"])
+  }
+}
+
