@@ -33,7 +33,6 @@ func (u User) validate() error {
 }
 
 func (u User) isEmailExists(db *sql.DB) error {
-  // tuple - return multiple values
   rows, err := db.Query("SELECT email FROM users WHERE email = ?", u.Email)
   if err != nil {
     log.Fatal(err)
@@ -42,9 +41,7 @@ func (u User) isEmailExists(db *sql.DB) error {
   defer rows.Close()
 
   for rows.Next() {
-    // err := rows.Scan(&u.Email)
     if err := rows.Scan(&u.Email); err != nil {
-      log.Fatal(err)
       return err
     }
     return errors.New("email already exists")

@@ -26,7 +26,7 @@ func (a *App) createUser(w http.ResponseWriter, r *http.Request) {
   var u User
   decoder := json.NewDecoder(r.Body)
   if err := decoder.Decode(&u); err != nil {
-    responseJsonErr(w, http.StatusBadRequest, "Invalid request payload")
+    responseJsonErr(w, http.StatusNotFound, "Invalid request payload")
     return
   }
 
@@ -36,16 +36,16 @@ func (a *App) createUser(w http.ResponseWriter, r *http.Request) {
   if err := u.validate(); err != nil {
     response, _ := json.Marshal(map[string]error{"error": err})
     w.Header().Set("Content-Type", "application/json")
-    w.WriteHeader(http.StatusBadRequest)
+    w.WriteHeader(http.StatusNotFound)
     w.Write(response)
     return
   }
 
   // 2. check if email is already registered.
   if err := u.isEmailExists(a.DB); err != nil {
-    response, _ := json.Marshal(map[string]map[string]string{"error": { "email": err.Error() }})
+    response, _ := json.Marshal(map[string]map[string]string{"error": { "email": "email already exists" }})
     w.Header().Set("Content-Type", "application/json")
-    w.WriteHeader(http.StatusBadRequest)
+    w.WriteHeader(http.StatusNotFound)
     w.Write(response)
     return
   }
@@ -60,7 +60,6 @@ func (a *App) createUser(w http.ResponseWriter, r *http.Request) {
   // 3. throw empty string json object.
   responseJson(w, http.StatusCreated, map[string]string{})
 }
-
 
 func (a *App) updateUser(w http.ResponseWriter, r *http.Request) {
   vars := mux.Vars(r)
@@ -86,10 +85,10 @@ func (a *App) updateUser(w http.ResponseWriter, r *http.Request) {
     return
   }
 
-  // update job base on user id and jobId
+  // update job base on user id
   updateUser, err := u.updateUser(a.DB, id);
   if err != nil {
-    responseJsonErr(w, http.StatusInternalServerError, err.Error())
+    responseJsonErr(w, http.StatusBadRequest, err.Error())
     return
   }
 
@@ -160,11 +159,7 @@ func (a *App) createJob(w http.ResponseWriter, r *http.Request) {
 
 func (a *App) getJob(w http.ResponseWriter, r *http.Request) {
   vars := mux.Vars(r)
-  id, err := strconv.Atoi(vars["id"])
-  if err != nil {
-    responseJsonErr(w, http.StatusBadRequest, "Invalid user ID")
-    return
-  }
+  id, _ := strconv.Atoi(vars["id"])
 
   j := Job{
     Id: id,
@@ -172,30 +167,28 @@ func (a *App) getJob(w http.ResponseWriter, r *http.Request) {
 
   job, err := j.getJob(a.DB)
   if err != nil {
-    responseJsonErr(w, http.StatusInternalServerError, err.Error())
+    responseJsonErr(w, http.StatusNotFound, err.Error())
     return
   }
   responseJson(w, http.StatusOK, job)
 }
 
 func (a *App) getJobs(w http.ResponseWriter, r *http.Request) {
-  base := 10
-  limit, _ := strconv.Atoi(r.FormValue("limit"))
-  offset, _ := strconv.Atoi(r.FormValue("offset"))
-
-  if limit > base || limit < 1 {
-    limit = base
+  baseLimit := 10
+  limit, err := strconv.Atoi(r.FormValue("limit"))
+  if err != nil {
+    limit = baseLimit
   }
-  if offset < 0 {
-    offset = 0
+
+  baseOffset := 0
+  offset, err := strconv.Atoi(r.FormValue("offset"))
+  if err != nil {
+    offset = baseOffset
   }
 
   var j Job
-  jobs, err := j.getJobs(a.DB, offset, limit)
-  if err != nil {
-    responseJsonErr(w, http.StatusInternalServerError, err.Error())
-    return
-  }
+  jobs, _ := j.getJobs(a.DB, offset, limit)
+
   responseJson(w, http.StatusOK, jobs)
 }
 
@@ -231,7 +224,7 @@ func (a *App) updateJob(w http.ResponseWriter, r *http.Request) {
   // update job base on user id and jobId
   updatedJob, err := j.updateJob(a.DB, u.Id, id);
   if err != nil {
-    responseJsonErr(w, http.StatusInternalServerError, err.Error())
+    responseJsonErr(w, http.StatusBadRequest, err.Error())
     return
   }
 
@@ -258,7 +251,7 @@ func (a *App) deleteJob(w http.ResponseWriter, r *http.Request) {
   // update job base on user id and jobId
   deletedJob, err := j.deleteJob(a.DB, u.Id, id);
   if err != nil {
-    responseJsonErr(w, http.StatusInternalServerError, err.Error())
+    responseJsonErr(w, http.StatusBadRequest, err.Error())
     return
   }
 

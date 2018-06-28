@@ -13,12 +13,11 @@ func main() {
   }
 
   app := App{}
-  app.database(
-    os.Getenv("APP_DB_DRIVER"),
+  app.Initialize(
     os.Getenv("APP_DB_USERNAME"),
     os.Getenv("APP_DB_PASSWORD"),
     os.Getenv("APP_DB_NAME"),
   )
-  app.routes()
-  app.run(":8080")
+  app.Routes()
+  app.Run(":8080")
 }
