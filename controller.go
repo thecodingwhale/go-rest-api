@@ -85,10 +85,10 @@ func (a *App) updateUser(w http.ResponseWriter, r *http.Request) {
     return
   }
 
-  // update job base on user id and jobId
+  // update job base on user id
   updateUser, err := u.updateUser(a.DB, id);
   if err != nil {
-    responseJsonErr(w, http.StatusInternalServerError, err.Error())
+    responseJsonErr(w, http.StatusBadRequest, err.Error())
     return
   }
 
@@ -224,7 +224,7 @@ func (a *App) updateJob(w http.ResponseWriter, r *http.Request) {
   // update job base on user id and jobId
   updatedJob, err := j.updateJob(a.DB, u.Id, id);
   if err != nil {
-    responseJsonErr(w, http.StatusInternalServerError, err.Error())
+    responseJsonErr(w, http.StatusBadRequest, err.Error())
     return
   }
 
@@ -251,7 +251,7 @@ func (a *App) deleteJob(w http.ResponseWriter, r *http.Request) {
   // update job base on user id and jobId
   deletedJob, err := j.deleteJob(a.DB, u.Id, id);
   if err != nil {
-    responseJsonErr(w, http.StatusInternalServerError, err.Error())
+    responseJsonErr(w, http.StatusBadRequest, err.Error())
     return
   }
 

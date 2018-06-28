@@ -135,15 +135,34 @@ func createUserEmail(e string) map[string]interface{} {
   }
 }
 
-func createJob(userId interface{}) {
+func createJob(userId interface{}) map[string]interface{} {
   query := `INSERT INTO jobs (user_id, post, location, company) VALUES (?, ?, ?, ?)`
-  a.DB.Exec(query, userId, fake.JobTitle(), fake.State(), fake.Company())
+  post := fake.JobTitle()
+  location := fake.State()
+  company := fake.Company()
+
+  res, err := a.DB.Exec(query, userId, post, location, company)
+  if err != nil {
+    log.Fatal(err)
+  }
+
+  id, err := res.LastInsertId()
+  if err != nil {
+    log.Fatal(err)
+  }
+
+  return map[string]interface{}{
+    "id" : id,
+    "post": post,
+    "location": location,
+    "company": company,
+  }
+
 }
 
-func createToken(t *testing.T) string {
-  inputEmail := "foo@email.com"
+func createToken(t *testing.T, inputEmail string) (string, map[string]interface{}) {
   password := "password"
-  createUserEmail(inputEmail)
+  user := createUserEmail(inputEmail)
 
   payload := []byte(`{"email":"`+ inputEmail +`","password":"`+ password +`"}`)
   req, _ := http.NewRequest("POST", "/authenticate", bytes.NewBuffer(payload))
@@ -153,7 +172,7 @@ func createToken(t *testing.T) string {
   var m map[string]string
   json.Unmarshal(response.Body.Bytes(), &m)
 
-  return m["token"]
+  return m["token"], user
 }
 
 func TestInvalidTypeParameter(t *testing.T) {

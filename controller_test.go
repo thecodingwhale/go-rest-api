@@ -181,9 +181,86 @@ func TestCreateUserEmailAlreadyExistsFailed(t *testing.T) {
   }
 }
 
+func TestUpdateUserEmptyBodyFailed(t *testing.T) {
+  clearTable();
+  token, _ := createToken(t, "foo@email.com");
+  payload := []byte(`{}`)
+  req, _ := http.NewRequest("PUT", "/users/1", bytes.NewBuffer(payload))
+  req.Header.Set("Authorization", "Bearer: " + token)
+  response := executeRequest(req)
+  checkResponseCode(t, http.StatusBadRequest, response.Code)
+
+  var m map[string]interface{}
+  json.Unmarshal(response.Body.Bytes(), &m)
+
+  email := m["error"].(map[string]interface{})["email"]
+  password := m["error"].(map[string]interface{})["password"]
+  name := m["error"].(map[string]interface{})["name"]
+
+  if email != "cannot be blank" {
+    t.Errorf("expected error '%s'", "cannot be blank")
+  }
+  if password != "cannot be blank" {
+    t.Errorf("expected error '%s'", "cannot be blank")
+  }
+  if name != "cannot be blank" {
+    t.Errorf("expected error '%s'", "cannot be blank")
+  }
+}
+
+func TestUpdateUserInvalidRequestPayloadFailed(t *testing.T) {
+  clearTable();
+  inputEmail := "foo@email.com"
+  token, _ := createToken(t, inputEmail)
+  payload := []byte(``)
+  req, _ := http.NewRequest("PUT", "/users/2", bytes.NewBuffer(payload))
+  req.Header.Set("Authorization", "Bearer: " + token)
+  response := executeRequest(req)
+  checkResponseCode(t, http.StatusBadRequest, response.Code)
+
+  var m map[string]interface{}
+  json.Unmarshal(response.Body.Bytes(), &m)
+  if m["error"] != "Invalid request payload" {
+    t.Errorf("Expected the 'error' key of the response to be set to 'Invalid request payload'. Got '%s'", m["error"])
+  }
+}
+
+func TestUpdateUserNotFoundFailed(t *testing.T) {
+  clearTable();
+  token, _ := createToken(t, "foo@email.com");
+  payload := []byte(``)
+  req, _ := http.NewRequest("PUT", "/users/XX", bytes.NewBuffer(payload))
+  req.Header.Set("Authorization", "Bearer: " + token)
+  response := executeRequest(req)
+  checkResponseCode(t, http.StatusNotFound, response.Code)
+
+  var m map[string]string
+  json.Unmarshal(response.Body.Bytes(), &m)
+  if m["error"] != "Not Found." {
+    t.Errorf("Expected the 'error' key of the response to be set to 'Not Found.'. Got '%s'", m["error"])
+  }
+}
+
+func TestUpdateUserSuccesfully(t *testing.T) {
+  clearTable();
+  token, _ := createToken(t, "foo@email.com");
+  payload := []byte(`{"email":"foo@email.com","name":"foobarbaz","password":"12345678"}`)
+  req, _ := http.NewRequest("PUT", "/users/1", bytes.NewBuffer(payload))
+  req.Header.Set("Authorization", "Bearer: " + token)
+  response := executeRequest(req)
+  checkResponseCode(t, http.StatusCreated, response.Code)
+
+  var m map[string]interface{}
+  json.Unmarshal(response.Body.Bytes(), &m)
+
+  if len(m) != 0 {
+    t.Errorf("Expected reponse should return 0 or empty. Got '%d'", len(m))
+  }
+}
+
 func TestCreateJobSuccesfully(t *testing.T) {
   clearTable();
-  token := createToken(t);
+  token, _ := createToken(t, "foo@email.com");
   payload := []byte(`{"company": "sample company", "location": "sample location", "post": "sample post"}`)
   req, _ := http.NewRequest("POST", "/jobs", bytes.NewBuffer(payload))
   req.Header.Set("Authorization", "Bearer: " + token)
@@ -200,7 +277,7 @@ func TestCreateJobSuccesfully(t *testing.T) {
 
 func TestCreateJobEmptyBodyFailed(t *testing.T) {
   clearTable();
-  token := createToken(t);
+  token, _ := createToken(t, "foo@email.com");
   payload := []byte(`{}`)
   req, _ := http.NewRequest("POST", "/jobs", bytes.NewBuffer(payload))
   req.Header.Set("Authorization", "Bearer: " + token)
@@ -227,7 +304,7 @@ func TestCreateJobEmptyBodyFailed(t *testing.T) {
 
 func TestCreateJobInvalidRequestPayloadFailed(t *testing.T) {
   clearTable();
-  token := createToken(t);
+  token, _ := createToken(t, "foo@email.com");
   payload := []byte(``)
   req, _ := http.NewRequest("POST", "/jobs", bytes.NewBuffer(payload))
   req.Header.Set("Authorization", "Bearer: " + token)
@@ -241,3 +318,184 @@ func TestCreateJobInvalidRequestPayloadFailed(t *testing.T) {
   }
 }
 
+func TestDeleteJobSuccesfully(t *testing.T) {
+  clearTable();
+  token, user := createToken(t, "foo@email.com")
+  createJob(user["id"])
+
+  payload := []byte(`{}`)
+  req, _ := http.NewRequest("DELETE", "/jobs/1", bytes.NewBuffer(payload))
+  req.Header.Set("Authorization", "Bearer: " + token)
+  response := executeRequest(req)
+  checkResponseCode(t, http.StatusCreated, response.Code)
+
+  var m map[string]interface{}
+  json.Unmarshal(response.Body.Bytes(), &m)
+
+  if len(m) != 0 {
+    t.Errorf("Expected reponse should return 0 or empty. Got '%d'", len(m))
+  }
+}
+
+func TestDeleteJobInvalidRequestPayloadFailed(t *testing.T) {
+  clearTable();
+  token, user := createToken(t, "foo@email.com")
+  createJob(user["id"])
+
+  payload := []byte(``)
+  req, _ := http.NewRequest("DELETE", "/jobs", bytes.NewBuffer(payload))
+  req.Header.Set("Authorization", "Bearer: " + token)
+  response := executeRequest(req)
+  checkResponseCode(t, http.StatusMethodNotAllowed, response.Code)
+
+  var m map[string]interface{}
+  json.Unmarshal(response.Body.Bytes(), &m)
+
+  if len(m) != 0 {
+    t.Errorf("Expected reponse should return 0 or empty. Got '%d'", len(m))
+  }
+}
+
+func TestDeleteJobNotFoundFailed(t *testing.T) {
+  clearTable();
+  token, user := createToken(t, "foo@email.com")
+  createJob(user["id"])
+
+  payload := []byte(`{}`)
+  req, _ := http.NewRequest("DELETE", "/jobs/XX", bytes.NewBuffer(payload))
+  req.Header.Set("Authorization", "Bearer: " + token)
+  response := executeRequest(req)
+  checkResponseCode(t, http.StatusNotFound, response.Code)
+
+  var m map[string]interface{}
+  json.Unmarshal(response.Body.Bytes(), &m)
+
+  if m["error"] != "Not Found." {
+    t.Errorf("Expected the 'error' key of the response to be set to 'Invalid request payload'. Got '%s'", m["error"])
+  }
+}
+
+func TestDeleteJobNoJobPostFoundFailed(t *testing.T) {
+  clearTable();
+  token, user := createToken(t, "foo@email.com")
+  createJob(user["id"])
+
+  payload := []byte(`{}`)
+  req, _ := http.NewRequest("DELETE", "/jobs/2", bytes.NewBuffer(payload))
+  req.Header.Set("Authorization", "Bearer: " + token)
+  response := executeRequest(req)
+  checkResponseCode(t, http.StatusBadRequest, response.Code)
+
+  var m map[string]interface{}
+  json.Unmarshal(response.Body.Bytes(), &m)
+
+  if m["error"] != "No job post found." {
+    t.Errorf("Expected the 'error' key of the response to be set to 'Invalid request payload'. Got '%s'", m["error"])
+  }
+}
+
+func TestUpdateJobInvalidRequestPayloadFailed(t *testing.T) {
+  clearTable();
+  token, user := createToken(t, "foo@email.com")
+  createJob(user["id"])
+
+  payload := []byte(``)
+  req, _ := http.NewRequest("PUT", "/jobs/1", bytes.NewBuffer(payload))
+  req.Header.Set("Authorization", "Bearer: " + token)
+  response := executeRequest(req)
+  checkResponseCode(t, http.StatusBadRequest, response.Code)
+
+  var m map[string]string
+  json.Unmarshal(response.Body.Bytes(), &m)
+
+  if m["error"] != "Invalid request payload" {
+    t.Errorf("Expected the 'error' key of the response to be set to 'Invalid request payload'. Got '%s'", m["error"])
+  }
+}
+
+func TestUpdateEmptyBodyFailed(t *testing.T) {
+  clearTable();
+  token, _ := createToken(t, "foo@email.com");
+  payload := []byte(`{}`)
+  req, _ := http.NewRequest("PUT", "/jobs/1", bytes.NewBuffer(payload))
+  req.Header.Set("Authorization", "Bearer: " + token)
+  response := executeRequest(req)
+  checkResponseCode(t, http.StatusBadRequest, response.Code)
+
+  var m map[string]interface{}
+  json.Unmarshal(response.Body.Bytes(), &m)
+
+  company := m["error"].(map[string]interface{})["company"]
+  location := m["error"].(map[string]interface{})["location"]
+  post := m["error"].(map[string]interface{})["post"]
+
+  if company != "cannot be blank" {
+    t.Errorf("expected error '%s'", "cannot be blank")
+  }
+  if location != "cannot be blank" {
+    t.Errorf("expected error '%s'", "cannot be blank")
+  }
+  if post != "cannot be blank" {
+    t.Errorf("expected error '%s'", "cannot be blank")
+  }
+}
+
+func TestUpdateJobNoJobPostFoundFailed(t *testing.T) {
+  clearTable();
+  token, user := createToken(t, "foo@email.com")
+  createJob(user["id"])
+
+  payload := []byte(`{"company": "sample company", "location": "sample location", "post": "sample post"}`)
+  req, _ := http.NewRequest("PUT", "/jobs/2", bytes.NewBuffer(payload))
+  req.Header.Set("Authorization", "Bearer: " + token)
+  response := executeRequest(req)
+  checkResponseCode(t, http.StatusBadRequest, response.Code)
+
+  var m map[string]interface{}
+  json.Unmarshal(response.Body.Bytes(), &m)
+
+  if m["error"] != "No job post found." {
+    t.Errorf("Expected the 'error' key of the response to be set to 'Invalid request payload'. Got '%s'", m["error"])
+  }
+}
+
+
+func TestUpdateJobNonRelatedTokenToJobPostIdFailed(t *testing.T) {
+  clearTable();
+  _, firstUser := createToken(t, "foo@email.com")
+  secondToken, _ := createToken(t, "bar@email.com")
+
+  createJob(firstUser["id"])
+
+  payload := []byte(`{"company": "sample company", "location": "sample location", "post": "sample post"}`)
+  req, _ := http.NewRequest("PUT", "/jobs/1", bytes.NewBuffer(payload))
+  req.Header.Set("Authorization", "Bearer: " + secondToken)
+  response := executeRequest(req)
+  checkResponseCode(t, http.StatusBadRequest, response.Code)
+
+  var m map[string]interface{}
+  json.Unmarshal(response.Body.Bytes(), &m)
+
+  if m["error"] != "No job post found." {
+    t.Errorf("Expected the 'error' key of the response to be set to 'Invalid request payload'. Got '%s'", m["error"])
+  }
+}
+
+func TestUpdateJobSucessfully(t *testing.T) {
+  clearTable();
+  token, user := createToken(t, "foo@email.com")
+  createJob(user["id"])
+
+  payload := []byte(`{"company": "sample company", "location": "sample location", "post": "sample post"}`)
+  req, _ := http.NewRequest("PUT", "/jobs/1", bytes.NewBuffer(payload))
+  req.Header.Set("Authorization", "Bearer: " + token)
+  response := executeRequest(req)
+  checkResponseCode(t, http.StatusCreated, response.Code)
+
+  var m map[string]string
+  json.Unmarshal(response.Body.Bytes(), &m)
+
+  if len(m) != 0 {
+    t.Errorf("Expected reponse should return 0 or empty. Got '%d'", len(m))
+  }
+}
