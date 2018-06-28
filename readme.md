@@ -1,5 +1,8 @@
 ## App
-  - create a simple api for a job posting with jwt authentication
+  - Create a simple api for a job posting with jwt authentication
+
+## Goals
+  - My main goal is to learn golang by creating things like building simple CRUD rest api with jwt.
 
 ### Run
 ```
