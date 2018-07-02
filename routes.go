@@ -12,12 +12,7 @@ import (
 	"github.com/gorilla/context"
 	"github.com/gorilla/mux"
 	"github.com/joho/godotenv"
-	// "github.com/mitchellh/mapstructure"
 )
-
-type Exception struct {
-	Message string `json:"message"`
-}
 
 func ValidateMiddleware(next http.HandlerFunc) http.HandlerFunc {
 	err := godotenv.Load()
@@ -70,4 +65,6 @@ func (app *App) Routes() {
 	app.Router.HandleFunc("/jobs/{id:[0-9]+}", ValidateMiddleware(app.deleteJob)).Methods("DELETE")
 	app.Router.HandleFunc("/jobs", ValidateMiddleware(app.createJob)).Methods("POST")
 	app.Router.NotFoundHandler = http.HandlerFunc(NotFound)
+
+	app.Router.HandleFunc("/v1/users", app.CreateUserHandler).Methods("POST")
 }

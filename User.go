@@ -116,7 +116,7 @@ func getUsers(db *sql.DB) ([]User, error) {
 	return users, nil
 }
 
-func (u *User) createUser(db *sql.DB) error {
+func (u *User) CreateUser(db *sql.DB) error {
 	query := `
     INSERT INTO users (email, name, password)
     VALUES (?, ?, ?)

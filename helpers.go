@@ -7,6 +7,10 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
+type Exception struct {
+	Message interface{} `json:"message"`
+}
+
 func responseJsonErr(w http.ResponseWriter, code int, message string) {
 	responseJson(w, code, map[string]string{"error": message})
 }
@@ -26,4 +30,11 @@ func HashPassword(password string) (string, error) {
 func CheckPasswordHash(password, hash string) bool {
 	err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
 	return err == nil
+}
+
+func httpResponse(w http.ResponseWriter, code int, res interface{}) {
+	response, _ := json.Marshal(res)
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(code)
+	w.Write(response)
 }

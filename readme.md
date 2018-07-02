@@ -137,3 +137,4 @@ response
   https://getstream.io/blog/switched-python-go/
   https://medium.com/@xoen/go-testing-technique-testing-json-http-requests-76d9ce0e11f
   https://medium.com/@povilasve/go-advanced-tips-tricks-a872503ac859
+  https://www.alexedwards.net/blog/organising-database-access#using-an-interface

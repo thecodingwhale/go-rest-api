@@ -50,7 +50,7 @@ func (a *App) createUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := u.createUser(a.DB); err != nil {
+	if err := u.CreateUser(a.DB); err != nil {
 		responseJsonErr(w, http.StatusInternalServerError, err.Error())
 		return
 	}
