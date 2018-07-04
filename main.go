@@ -1,9 +1,13 @@
 package main
 
 import (
-	"github.com/joho/godotenv"
 	"log"
 	"os"
+
+	"go-rest-api/app"
+	"go-rest-api/models"
+
+	"github.com/joho/godotenv"
 )
 
 func main() {
@@ -12,12 +16,18 @@ func main() {
 		log.Fatal("Error loading .env file")
 	}
 
-	app := App{}
-	app.Initialize(
+	DB, err := models.NewDB(
 		os.Getenv("APP_DB_USERNAME"),
 		os.Getenv("APP_DB_PASSWORD"),
 		os.Getenv("APP_DB_NAME"),
 	)
-	app.Routes()
-	app.Run(":8080")
+	if err != nil {
+		log.Panic(err)
+	}
+
+	a := &app.App{
+		DB: DB,
+	}
+
+	a.Routes()
 }
