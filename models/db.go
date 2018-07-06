@@ -7,10 +7,6 @@ import (
 
 )
 
-type Datastore interface {
-    AllBooks() ([]*Book, error)
-}
-
 type DB struct {
     *sql.DB
 }

@@ -26,7 +26,7 @@ func main() {
 	}
 
 	a := &app.App{
-		DB: DB,
+		User: DB,
 	}
 
 	a.Routes()
