@@ -8,4 +8,5 @@ import (
 type App struct {
     Router *mux.Router
     User models.UserDatastore
+    Auth models.AuthDatastore
 }

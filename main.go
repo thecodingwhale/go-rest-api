@@ -27,6 +27,7 @@ func main() {
 
 	a := &app.App{
 		User: DB,
+		Auth: DB,
 	}
 
 	a.Routes()
