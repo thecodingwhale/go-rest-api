@@ -12,6 +12,7 @@ import (
 
 type UserDatastore interface {
     Create(User) error
+    ReadByEmail(email string) (User, error)
     IsEmailExists(User) error
 }
 
@@ -74,4 +75,31 @@ func (db *DB) Create(u User) error {
   }
 
   return nil
+}
+
+func (db *DB) ReadByEmail(email string) (User, error) {
+  var u User
+  rows, err := db.Query("SELECT id, email, name FROM users WHERE email = ?", email)
+  if err != nil {
+    log.Fatal(err)
+    return User{}, err
+  }
+  defer rows.Close()
+
+  for rows.Next() {
+    rows.Scan(&u.Id, &u.Email, &u.Name)
+    return User{
+      Id: u.Id,
+      Email: u.Email,
+      Name: u.Name,
+    }, nil
+  }
+  return User{}, err
+
+  err = rows.Err()
+  if err != nil {
+    log.Fatal(err)
+    return User{}, err
+  }
+  return User{}, nil
 }

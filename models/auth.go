@@ -15,7 +15,7 @@ import (
 type AuthDatastore interface {
     Validate(Auth) error
     IsUserExists(Auth) error
-    // CreateToken(Auth) (token string, err error)
+    CreateToken(User) (token string, err error)
 }
 
 type Auth struct {
@@ -32,7 +32,7 @@ func (db *DB) Validate(a Auth) error {
 
 func (db *DB) IsUserExists(a Auth) error {
   requestPassword := a.Password
-  rows, err := db.Query("SELECT id, email, name, password FROM users WHERE email=?", a.Email)
+  rows, err := db.Query("SELECT email, password FROM users WHERE email=?", a.Email)
   if err != nil {
     log.Fatal(err)
     return err
@@ -63,7 +63,9 @@ func (db *DB) CreateToken(u User) (token string, tokenError error) {
     return "", errors.New("Error loading .env file")
   }
   jwtToken := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+    "id": u.Id,
     "email": u.Email,
+    "name": u.Name,
   })
   token, jwtErr := jwtToken.SignedString([]byte(os.Getenv("APP_SECRET")))
   if jwtErr != nil {

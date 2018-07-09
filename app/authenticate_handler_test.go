@@ -25,10 +25,16 @@ func (mdb *authenticateMockDB) Validate(u models.Auth) error {
 }
 
 func (mdb *authenticateMockDB) IsUserExists(a models.Auth) error {
+  if (a.Email == "isUserExists@email.com" || a.Email == "createToken@email.com" || a.Email == "authenticateSuccess@email.com") {
+    return nil
+  }
   return errors.New("error")
 }
 
 func (mdb *authenticateMockDB) CreateToken(u models.User) (token string, err error) {
+  if (u.Email == "createToken@email.com") {
+    return "", errors.New("Create token failed.")
+  }
   return "asdadasd", nil
 }
 
@@ -104,7 +110,7 @@ func TestAuthenticateHandlerToReturnInputRequestValidationForMissingPayload(t *t
 func TestAuthenticateHandlerToReturnErrorIfUserDoesNotExists(t *testing.T) {
   rec := httptest.NewRecorder()
   payload := []byte(`{"email":"foo@email.com","password":"12345678"}`)
-  req, _ := http.NewRequest("POST", "/users", bytes.NewBuffer(payload))
+  req, _ := http.NewRequest("POST", "/authenticate", bytes.NewBuffer(payload))
 
   var a = App{
     Auth: &authenticateMockDB{},
@@ -121,5 +127,77 @@ func TestAuthenticateHandlerToReturnErrorIfUserDoesNotExists(t *testing.T) {
 
   if errorMessage != expectedErrorMessage {
     t.Errorf("expected error '%s'", expectedErrorMessage)
+  }
+}
+
+func TestAuthenticateHandlerToReturnErrorIfReadyByUserFailed(t *testing.T) {
+  rec := httptest.NewRecorder()
+  payload := []byte(`{"email":"isUserExists@email.com","password":"12345678"}`)
+  req, _ := http.NewRequest("POST", "/authenticate", bytes.NewBuffer(payload))
+  var a = App{
+    Auth: &authenticateMockDB{},
+    User: &userCreateMockDB{},
+  }
+
+  http.HandlerFunc(a.Authenticate).ServeHTTP(rec, req)
+
+  CheckResponseCode(t, http.StatusNotFound, rec.Code)
+
+  var m map[string]interface{}
+  json.Unmarshal(rec.Body.Bytes(), &m)
+
+  errorMessage := m["error"].(map[string]interface{})["message"]
+  expectedErrorMessage := "Email doesn't exists."
+
+  if errorMessage != expectedErrorMessage {
+    t.Errorf("expected error '%s'", expectedErrorMessage)
+  }
+}
+
+func TestAuthenticateHandlerToReturnErrorIfCreateTokenFailed(t *testing.T) {
+  rec := httptest.NewRecorder()
+  payload := []byte(`{"email":"createToken@email.com","password":"12345678"}`)
+  req, _ := http.NewRequest("POST", "/authenticate", bytes.NewBuffer(payload))
+  var a = App{
+    Auth: &authenticateMockDB{},
+    User: &userCreateMockDB{},
+  }
+
+  http.HandlerFunc(a.Authenticate).ServeHTTP(rec, req)
+
+  CheckResponseCode(t, http.StatusNotFound, rec.Code)
+
+  var m map[string]interface{}
+  json.Unmarshal(rec.Body.Bytes(), &m)
+
+  errorMessage := m["error"].(map[string]interface{})["message"]
+  expectedErrorMessage := "Create token failed."
+
+  if errorMessage != expectedErrorMessage {
+    t.Errorf("expected error '%s'", expectedErrorMessage)
+  }
+}
+
+func TestAuthenticateHandlerToReturnSuccess(t *testing.T) {
+  rec := httptest.NewRecorder()
+  payload := []byte(`{"email":"authenticateSuccess@email.com","password":"12345678"}`)
+  req, _ := http.NewRequest("POST", "/authenticate", bytes.NewBuffer(payload))
+  var a = App{
+    Auth: &authenticateMockDB{},
+    User: &userCreateMockDB{},
+  }
+
+  http.HandlerFunc(a.Authenticate).ServeHTTP(rec, req)
+
+  CheckResponseCode(t, http.StatusCreated, rec.Code)
+
+  var m map[string]interface{}
+  json.Unmarshal(rec.Body.Bytes(), &m)
+
+  message := m["token"]
+  expectedMessage := "asdadasd"
+
+  if message != expectedMessage {
+    t.Errorf("expected token value:  '%s'", expectedMessage)
   }
 }

@@ -27,6 +27,17 @@ func (mdb *userCreateMockDB) IsEmailExists(u models.User) error {
   return nil
 }
 
+func (mdb *userCreateMockDB) ReadByEmail(email string) (models.User, error) {
+  if email != "isUserExists@email.com" {
+    return models.User{
+      Id: 1,
+      Email: email,
+      Name: "Sample Name",
+    }, nil
+  }
+  return models.User{}, errors.New("Email doesn't exists.")
+}
+
 func CheckResponseCode(t *testing.T, expected, actual int) {
   if expected != actual {
     t.Errorf("Expected response code %d. Got %d\n", expected, actual)

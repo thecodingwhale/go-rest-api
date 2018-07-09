@@ -30,17 +30,18 @@ func (app *App) Authenticate(w http.ResponseWriter, r *http.Request) {
         return
     }
 
-    // Get User Profile
-    // app.User.GetByEmail(a.Email)
-    // token, err := app.Auth.CreateToken(user)
-    // if err != nil {
-    //     helpers.HttpResponse(w, http.StatusNotFound, helpers.ResponseException(err.Error()))
-    //     return
-    // }
+    user, err := app.User.ReadByEmail(a.Email)
+    if err != nil {
+        helpers.HttpResponse(w, http.StatusNotFound, helpers.ResponseException(err.Error()))
+        return
+    }
 
-    // log.Println(token)
+    token, err := app.Auth.CreateToken(user)
+    if err != nil {
+        helpers.HttpResponse(w, http.StatusNotFound, helpers.ResponseException(err.Error()))
+        return
+    }
 
-    // responseMessage := map[string]string{"token": token}
-    // helpers.HttpResponse(w, http.StatusCreated, responseMessage)
+    helpers.HttpResponse(w, http.StatusCreated, map[string]string{"token": token})
 }
 
