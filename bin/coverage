@@ -1,2 +1,2 @@
 #!/bin/bash
-go test -coverprofile cp.out && go tool cover -html=cp.out
+go test $(go list ./... | grep -v /vendor/) -coverprofile cp.out && go tool cover -html=cp.out
